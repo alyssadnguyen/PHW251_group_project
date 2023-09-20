@@ -1,0 +1,23 @@
+---
+title: "Project Milestone #1"
+format: pdf
+editor: visual
+---
+
+## Quarto
+
+-   Project option selection: Scenario #1
+
+-   Create git repository
+
+    -   Share a link to your group\'s git repository
+
+-   Roles and responsibilities
+
+    -   Team's preferred communication method 
+
+    -   Team's preferred meeting times and frequency 
+
+    -   Team's preferred method for tracking progress
+
+    -   Point person for contacting course facilitators with questions
