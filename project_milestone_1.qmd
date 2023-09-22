@@ -6,11 +6,11 @@ editor: visual
 
 ## Quarto
 
--   Project option selection: Scenario #1
+-   Project option selection: **Scenario #1**
 
 -   Create git repository
 
-    -   Share a link to your group's git repository
+    -   Share a link to your group's git repository: **https://github.com/alyssadnguyen/PHW251_group_project.git**
 
 -   Roles and responsibilities
 
