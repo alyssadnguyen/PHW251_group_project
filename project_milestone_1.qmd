@@ -16,7 +16,13 @@ editor: visual
 
     -   Team's preferred communication method - Zoom, Google Doc, WhatsApp
 
-    -   Team's preferred meeting times and frequency 
+    -   Team's preferred meeting times and frequency -
+
+        -    I prefer to meet at 5pm latest. I am also available to meet most weekends if we can meet on the earlier side. 
+
+        -   I can meet anytime after 4pm on weekdays and also prefer earlier on the weekends.
+
+    All of these options work for me, and I can also meet before noon on weekdays.
 
     -   Team's preferred method for tracking progress
 
