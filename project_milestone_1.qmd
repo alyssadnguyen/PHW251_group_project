@@ -26,4 +26,8 @@ editor: visual
 
     -   Team's preferred method for tracking progress
 
+        -   Friday works! That way we can have the weekend to tie up loose ends
+
+        -   Friday is good with me.\
+
     -   Point person for contacting course facilitators with questions
