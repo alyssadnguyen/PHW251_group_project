@@ -14,20 +14,18 @@ editor: visual
 
 -   Roles and responsibilities
 
-    -   Team's preferred communication method - Zoom, Google Doc, WhatsApp
+    -   Team's preferred communication method 
 
-    -   Team's preferred meeting times and frequency -
+        -   Zoom, Google Doc, WhatsApp
 
-        -    I prefer to meet at 5pm latest. I am also available to meet most weekends if we can meet on the earlier side. 
+    -   Team's preferred meeting times and frequency 
 
-        -   I can meet anytime after 4pm on weekdays and also prefer earlier on the weekends.
-
-    All of these options work for me, and I can also meet before noon on weekdays.
+        -   We will meet once during the week before 5pm, and once on the weekend before noon
 
     -   Team's preferred method for tracking progress
 
-        -   Friday works! That way we can have the weekend to tie up loose ends
-
-        -   Friday is good with me.\
+        -   We will notify each other before starting work, and will have all commits by EOD on Friday of each week, then we will meet on the weekend to ensure final commit is ready.
 
     -   Point person for contacting course facilitators with questions
+
+        -   Jourdan will contact course facilitators with questions
