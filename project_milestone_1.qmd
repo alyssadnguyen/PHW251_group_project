@@ -10,11 +10,11 @@ editor: visual
 
 -   Create git repository
 
-    -   Share a link to your group\'s git repository
+    -   Share a link to your group's git repository
 
 -   Roles and responsibilities
 
-    -   Team's preferred communication method 
+    -   Team's preferred communication method - Zoom, Google Doc, WhatsApp
 
     -   Team's preferred meeting times and frequency 
 
