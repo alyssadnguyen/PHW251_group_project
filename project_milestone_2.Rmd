@@ -1,0 +1,12 @@
+---
+title: "Project Milestone #2"
+output: html_document
+date: "2023-09-27"
+---
+
+```{r}
+vax_rates_quarter_CA <- read.csv("ca_vax_rates_quarter.csv")
+popul_sim_flu_LA <- read.csv("sim_flu_LACounty.csv")
+sim_flu_CA <- read.csv("sim_flu_CA.csv")
+```
+
