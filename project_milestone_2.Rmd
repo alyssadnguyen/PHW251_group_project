@@ -4,9 +4,222 @@ output: html_document
 date: "2023-09-27"
 ---
 
+#### **Description of dataset**
+
+-   What is the data source? (1-2 sentences on where the data is coming from, dates included, etc.)\
+    \
+    *Data sources include aggregate flu morbidity data for the state of California at the county-level by selected demographics (age group, sex, race/ethnicity) separated into two files: (1) daily data for Los Angeles (2) weekly data for all other CA counties. The third data source is aggregate quarterly COVID-19 vaccination rates by county and age group.*\
+
+-   How does the dataset relate to the group problem statement and question?\
+    \
+    *The research question involves comparing COVID-19 vaccination rates with flu vaccination rates to assess any correlation between the two in order to provide well-informed recommendations for flu vaccination. The two data sources for county-level flu cases can be used to calculate rates which can then be compared to rates calculated from the COVID-19 vaccination data source.*\
+
+#### **Import statements for all datasets**
+
+-   Use appropriate import function and package based on the type of file
+
 ```{r}
+
 vax_rates_quarter_CA <- read.csv("ca_vax_rates_quarter.csv")
 popul_sim_flu_LA <- read.csv("sim_flu_LACounty.csv")
 sim_flu_CA <- read.csv("sim_flu_CA.csv")
+
 ```
 
+-   Utilize function arguments to control relevant components (i.e. change column types, column names, missing values, etc.)
+
+```{r}
+library(tidyverse)
+library(dplyr)
+```
+
+-   Document the import process
+
+    *Include*
+
+    *library(tidyverse)*
+
+    *library(dplyr)*
+
+    *Downloaded datasets from GitHub and then uploaded directly to the working directory to the project folder.* 
+
+-   Clean up column names (recommend using snake case, which is lower case text with underscores between words)
+
+    *\
+    Rename_with - popul_sim_flu_LA & vax_rates_quarter_CA*
+
+*!is.na()  OR na.rm=TRUE () - Missing values*
+
+*vax_rates_quarter_CA_rename \<- rename_with (*
+
+*vax_rates_quarter_CA,*
+
+*\~ tolower (*
+
+*gsub (".",*
+
+*"\_",*
+
+*.x,*
+
+*fixed = TRUE)*
+
+*))*
+
+*\
+*
+
+*popul_sim_flu_LA_rename \<- rename_with(*
+
+*popul_sim_flu_LA,*
+
+*\~ tolower (*
+
+*gsub (" ",*
+
+*"\_",*
+
+*.x,*
+
+*fixed = TRUE)*
+
+*))*
+
+\
+
+#### **Identify data types for 5+ data elements/columns/variables**
+
+-   Identify 5+ data elements required for your specified scenario. If \<5 elements are required to complete the analysis, please choose additional variables of interest in the data set to explore in this milestone.
+
+    1.  *Date*
+
+        -   *CA flu data: time_int (week of the year)*
+        -   *LA flu data: DT_DX (specific date)*
+        -   COVID vax data: Quarter (quarter)
+
+    2.  *County*
+
+        -   *CA flu data: county*
+        -   *LA flu data: no county field, but can assign county == "Los Angeles"*
+        -   COVID vax data: County.Name
+
+    3.  *Count of incident flu cases/vaxxed*
+
+        -   *CA flu data: new_infections*
+        -   *LA flu data: DX_NEW*
+        -   COVID vax data: Total.Partial.Vaccinated
+
+    4.  *Population*
+
+        -   *CA flu data: pop*
+        -   *LA flu data: no population data, will need to pull from vax source?*
+        -   COVID vax data: Estimated.Population
+
+    5.  *Demographic characteristics:*
+
+        -   *Age group*
+            -   *CA flu data: age_cat*
+            -   *LA flu data: AGE_CATEGORY*
+            -   COVID vax data: Demographic.Category (need to transpose)\
+        -   *Sex*
+            -   *CA flu data: sex*
+            -   *LA flu data: SEX*
+            -   COVID vax data: Demographic.Category (need to transpose)\
+        -   *Race/Ethnicity*
+            -   *CA flu data: race_ethnicity*
+            -   *LA flu data: RACE_ETH*
+            -   *COVID vax data: Demographic.Category (need to transpose)*
+
+-   Utilize functions or resources in RStudio to determine the types of each data element (i.e. character, numeric, factor)
+
+    ```{r}
+    str(vax_rates_quarter_CA)
+    str(popul_sim_flu_LA)
+    str(sim_flu_CA)
+    ```
+
+-   Identify the desired type/format for each variable---will you need to convert any columns to numeric or another type?\
+    \
+    *Dates need to be converted from character to date for LA and COVID sources. Date for CA source needs to be converted from numeric to date. Numerical race/ethnicity in CA source needs to be mapped to character value.* 
+
+#### **Provide a basic description of the 5+ data elements**
+
+-   Numeric: mean, median, range\
+
+    ```{r}
+
+    #summary of flu cases and vaccination counts
+    summary(sim_flu_CA$new_infections)
+    summary(popul_sim_flu_LA$DX_NEW)
+    summary(vax_rates_quarter_CA$Total.Partial.Vaccinated)
+
+    #summary of population count
+    summary(sim_flu_CA$pop)
+    summary(vax_rates_quarter_CA$Total.Partial.Vaccinated)
+
+    ```
+
+-   Character:  unique values/categories
+
+    ```{r}
+
+    #date fields
+    unique(sim_flu_CA$time_int)
+    unique(popul_sim_flu_LA$DT_DX) 
+    unique(vax_rates_quarter_CA$Quarter)
+
+    #county
+    unique(sim_flu_CA$county)
+    unique(vax_rates_quarter_CA$County.Name)
+
+    #age group
+    unique(sim_flu_CA$age_cat)
+    unique(popul_sim_flu_LA$AGE_CATEGORY)
+
+    #sex
+    unique(sim_flu_CA$sex)
+    unique(popul_sim_flu_LA$SEX)
+
+    #race/ethnicity
+    unique(sim_flu_CA$race_ethnicity)
+    unique(popul_sim_flu_LA$RACE_ETH)
+
+    #demographic cat in vax data that needs to be pivoted
+    unique(vax_rates_quarter_CA$Demographic.Category)
+
+    ```
+
+-   Or any other descriptives that will be useful to the analysis
+
+    ```{r}
+    ```
+
+    \
+    *!is.na()  OR na.rm=TRUE () - Missing values*
+
+*\# !is.na drops the rows from dataframe, na.rm=TRUE keeps in a date frame but excludes from calculation\
+*
+
+#### **Describe cleaning that each data source may need**
+
+-   Data elements that need to be converted to a different type\
+    \
+    *Dates need to be converted from character to date for LA and COVID sources. Date for CA source needs to be converted from numeric to date.\
+    \
+    Numerical race/ethnicity in CA source needs to be mapped to character value.*\
+
+-   Data elements that need cleaning or re-categorization
+
+    -   *Dates in flu datasets will need to be reassigned to yearly quarter*
+
+    -   *County value in the CA source needs to remove the "County" string at the end.*
+
+    -   *Age group in vax sources need to be re-categorized to match flu data sources.*
+
+    -   *Race/ethnicity values need to be re-categorized to the chosen standard.*
+
+    -   *Demographic category field in the vax source needs to be pivoted from long to wide.*\
+
+-   Data elements that may be used for future joins (i.e. state, county)\
+    \
+    *County, date field, demographic fields in the flu datasets will be joined with the same fields in the vax source. To pull population count for LA, this data source will need to be joined with the vax data source on county.* 
