@@ -413,31 +413,36 @@ sim_flu_CA &lt;- read.csv(&quot;sim_flu_CA.csv&quot;)</code></pre>
 <p><em>Downloaded datasets from GitHub and then uploaded directly to the
 working directory to the project folder.</em> </p></li>
 <li><p>Clean up column names (recommend using snake case, which is lower
-case text with underscores between words)</p>
-<p><em><br />
-Rename_with - popul_sim_flu_LA &amp; vax_rates_quarter_CA</em></p></li>
+case text with underscores between words)<br />
+<br />
+<em>Rename columns in LA and CA flu data so they are consistent and can
+be eventually stacked: flu case count, county.</em></p>
+<pre class="r"><code>popul_sum_flu_LA_rename &lt;- rename(popul_sim_flu_LA, new_infections = DX_NEW)</code></pre>
+<p><em>Rename_with - popul_sim_flu_LA &amp;
+vax_rates_quarter_CA*</em></p>
+<p><em>!is.na()  OR na.rm=TRUE () - Missing values</em></p></li>
 </ul>
-<p><em>!is.na()  OR na.rm=TRUE () - Missing values</em></p>
-<p><em>vax_rates_quarter_CA_rename &lt;- rename_with (</em></p>
-<p><em>vax_rates_quarter_CA,</em></p>
-<p><em>~ tolower (</em></p>
-<p><em>gsub (“.”,</em></p>
-<p><em>“_”,</em></p>
-<p><em>.x,</em></p>
-<p><em>fixed = TRUE)</em></p>
-<p><em>))</em></p>
-<p><em><br />
-</em></p>
-<p><em>popul_sim_flu_LA_rename &lt;- rename_with(</em></p>
-<p><em>popul_sim_flu_LA,</em></p>
-<p><em>~ tolower (</em></p>
-<p><em>gsub (” “,</em></p>
-<p><em>“_”,</em></p>
-<p><em>.x,</em></p>
-<p><em>fixed = TRUE)</em></p>
-<p><em>))</em></p>
-<p><br />
-</p>
+<pre class="r"><code># vax_rates_quarter_CA &lt;- read.csv(&quot;ca_vax_rates_quarter.csv&quot;)
+# vax_rates_quarter_CA_rename &lt;- rename_with (
+#  vax_rates_quarter_CA, 
+#  ~ tolower (
+#    gsub (&quot;.&quot;,
+#           &quot;_&quot;,
+#           .x,
+#           fixed = TRUE),
+#  na.rm=TRUE ))</code></pre>
+<pre class="r"><code># popul_sim_flu_LA &lt;- read.csv(&quot;sim_flu_LACounty.csv&quot;)
+# popul_sim_flu_LA_rename &lt;- rename_with(
+#  popul_sim_flu_LA,
+#  ~ tolower (
+#    gsub (&quot; &quot;,
+#          &quot;_&quot;,
+#          .x,
+#          fixed = TRUE)
+#  ))
+
+
+# popul_sim_flu_LA_rename &lt;- rename (popul_sim_flu_LA, new_infections = DX_NEW)</code></pre>
 </div>
 <div id="identify-data-types-for-5-data-elementscolumnsvariables" class="section level4">
 <h4><strong>Identify data types for 5+ data
@@ -700,12 +705,12 @@ unique(sim_flu_CA$race_ethnicity)</code></pre>
 unique(vax_rates_quarter_CA$Demographic.Category)</code></pre>
 <pre><code>## [1] &quot;Age Group&quot;      &quot;Gender&quot;         &quot;Race/Ethnicity&quot;</code></pre></li>
 <li><p>Or any other descriptives that will be useful to the analysis</p>
-<p><br />
-<em>!is.na()  OR na.rm=TRUE () - Missing values</em></p></li>
+<pre class="r"><code>max(sim_flu_CA$time_int) </code></pre>
+<pre><code>## [1] 202323</code></pre>
+<p><em>!is.na()  OR na.rm=TRUE () - Missing values<br />
+!is.na drops the rows from dataframe, na.rm=TRUE keeps in a date frame
+but excludes from calculation</em></p></li>
 </ul>
-<p><em># !is.na drops the rows from dataframe, na.rm=TRUE keeps in a
-date frame but excludes from calculation<br />
-</em></p>
 </div>
 <div id="describe-cleaning-that-each-data-source-may-need" class="section level4">
 <h4><strong>Describe cleaning that each data source may

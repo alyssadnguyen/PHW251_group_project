@@ -43,11 +43,17 @@ library(dplyr)
 
     *Downloaded datasets from GitHub and then uploaded directly to the working directory to the project folder.* 
 
--   Clean up column names (recommend using snake case, which is lower case text with underscores between words)
-
-    Rename_with - popul_sim_flu_LA & vax_rates_quarter_CA\*
-
+-   Clean up column names (recommend using snake case, which is lower case text with underscores between words)\
+    \
     *Rename columns in LA and CA flu data so they are consistent and can be eventually stacked: flu case count, county.*
+
+    ```{r}
+
+    popul_sum_flu_LA_rename <- rename(popul_sim_flu_LA, new_infections = DX_NEW)
+
+    ```
+
+    *Rename_with - popul_sim_flu_LA & vax_rates_quarter_CA\**
 
     *!is.na()  OR na.rm=TRUE () - Missing values*
 
@@ -183,11 +189,13 @@ library(dplyr)
 -   Or any other descriptives that will be useful to the analysis
 
     ```{r}
+
+    max(sim_flu_CA$time_int) 
+
     ```
 
-    # *!is.na()  OR na.rm=TRUE () - Missing values*
-
-# !is.na drops the rows from dataframe, na.rm=TRUE keeps in a date frame but excludes from calculation
+    *!is.na()  OR na.rm=TRUE () - Missing values\
+    !is.na drops the rows from dataframe, na.rm=TRUE keeps in a date frame but excludes from calculation*
 
 #### **Describe cleaning that each data source may need**
 
