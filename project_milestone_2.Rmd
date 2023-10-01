@@ -45,47 +45,38 @@ library(dplyr)
 
 -   Clean up column names (recommend using snake case, which is lower case text with underscores between words)
 
-    *\
-    Rename_with - popul_sim_flu_LA & vax_rates_quarter_CA*
+    Rename_with - popul_sim_flu_LA & vax_rates_quarter_CA\*
 
-*!is.na()  OR na.rm=TRUE () - Missing values*
+    *Rename columns in LA and CA flu data so they are consistent and can be eventually stacked: flu case count, county.*
 
-*vax_rates_quarter_CA_rename \<- rename_with (*
+    *!is.na()  OR na.rm=TRUE () - Missing values*
 
-*vax_rates_quarter_CA,*
+```{r}
+# vax_rates_quarter_CA <- read.csv("ca_vax_rates_quarter.csv")
+# vax_rates_quarter_CA_rename <- rename_with (
+#  vax_rates_quarter_CA, 
+#  ~ tolower (
+#    gsub (".",
+#           "_",
+#           .x,
+#           fixed = TRUE),
+#  na.rm=TRUE ))
+```
 
-*\~ tolower (*
+```{r}
+# popul_sim_flu_LA <- read.csv("sim_flu_LACounty.csv")
+# popul_sim_flu_LA_rename <- rename_with(
+#  popul_sim_flu_LA,
+#  ~ tolower (
+#    gsub (" ",
+#          "_",
+#          .x,
+#          fixed = TRUE)
+#  ))
 
-*gsub (".",*
 
-*"\_",*
-
-*.x,*
-
-*fixed = TRUE)*
-
-*))*
-
-*\
-*
-
-*popul_sim_flu_LA_rename \<- rename_with(*
-
-*popul_sim_flu_LA,*
-
-*\~ tolower (*
-
-*gsub (" ",*
-
-*"\_",*
-
-*.x,*
-
-*fixed = TRUE)*
-
-*))*
-
-\
+# popul_sim_flu_LA_rename <- rename (popul_sim_flu_LA, new_infections = DX_NEW)
+```
 
 #### **Identify data types for 5+ data elements/columns/variables**
 
@@ -194,11 +185,9 @@ library(dplyr)
     ```{r}
     ```
 
-    \
-    *!is.na()  OR na.rm=TRUE () - Missing values*
+    # *!is.na()  OR na.rm=TRUE () - Missing values*
 
-*\# !is.na drops the rows from dataframe, na.rm=TRUE keeps in a date frame but excludes from calculation\
-*
+# !is.na drops the rows from dataframe, na.rm=TRUE keeps in a date frame but excludes from calculation
 
 #### **Describe cleaning that each data source may need**
 
