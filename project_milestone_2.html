@@ -361,12 +361,15 @@ display: none;
 <li><p>What is the data source? (1-2 sentences on where the data is
 coming from, dates included, etc.)<br />
 <br />
-<em>Data sources include aggregate flu morbidity data for the state of
-California at the county-level by selected demographics (age group, sex,
-race/ethnicity) separated into two files: (1) daily data for Los Angeles
-(2) weekly data for all other CA counties. The third data source is
-aggregate quarterly COVID-19 vaccination rates by county and age
-group.</em><br />
+<em>Data sources include simulated aggregate flu morbidity data for the
+state of California at the county-level by selected demographics (age
+group, sex, race/ethnicity) separated into two files: (1) daily data for
+Los Angeles (from end of September 2022 - June 2023) (2) weekly data for
+all other CA counties (from the 40th week of 2022 to the 23rd week of
+2023). The third data source is aggregate quarterly COVID-19 vaccination
+rates by county and age group (from July 2022 to July 2023).</em><br />
+<br />
+<em>Data sources can be found in the PHW251 repo: <a href="https://github.com/PHW290/phw251_projectdata/tree/main/scenario_1" class="uri">https://github.com/PHW290/phw251_projectdata/tree/main/scenario_1</a></em><br />
 </p></li>
 <li><p>How does the dataset relate to the group problem statement and
 question?<br />
@@ -416,7 +419,7 @@ working directory to the project folder.</em> </p></li>
 case text with underscores between words)<br />
 <br />
 <em>Rename columns in LA and CA flu data so they are consistent and can
-be eventually stacked: flu case count, county.</em></p>
+be eventually stacked: flu case count, county. One example:</em></p>
 <pre class="r"><code>popul_sum_flu_LA_rename &lt;- rename(popul_sim_flu_LA, new_infections = DX_NEW)</code></pre>
 <p><em>Rename_with - popul_sim_flu_LA &amp;
 vax_rates_quarter_CA*</em></p>
@@ -705,8 +708,20 @@ unique(sim_flu_CA$race_ethnicity)</code></pre>
 unique(vax_rates_quarter_CA$Demographic.Category)</code></pre>
 <pre><code>## [1] &quot;Age Group&quot;      &quot;Gender&quot;         &quot;Race/Ethnicity&quot;</code></pre></li>
 <li><p>Or any other descriptives that will be useful to the analysis</p>
+<pre class="r"><code>min(sim_flu_CA$time_int)</code></pre>
+<pre><code>## [1] 202240</code></pre>
 <pre class="r"><code>max(sim_flu_CA$time_int) </code></pre>
 <pre><code>## [1] 202323</code></pre>
+<pre class="r"><code>popul_sim_flu_LA_dtmod &lt;- popul_sim_flu_LA %&gt;%
+  mutate(dt_dx_mod = as.Date(DT_DX, format = &quot;%d%b%Y&quot;))
+min(popul_sim_flu_LA_dtmod$dt_dx_mod)</code></pre>
+<pre><code>## [1] &quot;2022-09-29&quot;</code></pre>
+<pre class="r"><code>max(popul_sim_flu_LA_dtmod$dt_dx_mod)</code></pre>
+<pre><code>## [1] &quot;2023-06-10&quot;</code></pre>
+<pre class="r"><code>min(vax_rates_quarter_CA$Quarter)</code></pre>
+<pre><code>## [1] &quot;2020-07-01&quot;</code></pre>
+<pre class="r"><code>max(vax_rates_quarter_CA$Quarter)</code></pre>
+<pre><code>## [1] &quot;2023-07-01&quot;</code></pre>
 <p><em>!is.na()  OR na.rm=TRUE () - Missing values<br />
 !is.na drops the rows from dataframe, na.rm=TRUE keeps in a date frame
 but excludes from calculation</em></p></li>
