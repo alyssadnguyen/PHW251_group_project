@@ -1,0 +1,93 @@
+---
+title: "project_milestone_3"
+output: html_document
+date: "2023-10-26"
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Import data
+
+Set packages and import data
+
+```{r}
+library(tidyverse)
+library(dplyr)
+
+source_vax_CA <- read.csv("~/PHW251_group_project/data/ca_vax_rates_quarter.csv")
+source_flu_LA <- read.csv("~/PHW251_group_project/data/sim_flu_LACounty_pop.csv")
+source_flu_CA <- read.csv("~/PHW251_group_project/data/sim_flu_CA.csv")
+```
+
+## Stack flu data sets
+
+Rework CA flu data
+
+```{r}
+flu_CA <- source_flu_CA %>%
+  mutate(county = str_replace(county,"County",""),
+         race_ethnicity = case_when(race_ethnicity == "1" ~ "White, Non-Hispanic",
+                                    race_ethnicity == "2" ~ "Black, Non-Hispanic",
+                                    race_ethnicity == "3" ~ "American Indian or Alaska Native, Non-Hispanic",
+                                    race_ethnicity == "4" ~ "Asian, Non-Hispanic",
+                                    race_ethnicity == "5" ~ "Native Hawaiian or Pacific Islander, Non-Hispanic",
+                                    race_ethnicity == "6" ~ "Multiracial (two or more of above races), Non-Hispanic",
+                                    race_ethnicity == "7" ~ "Hispanic (any race)",
+                                    race_ethnicity == "9" ~ "Unknown"))
+
+```
+
+Rework LA flu data to match CA flu data
+
+```{r}
+
+flu_LA <- source_flu_LA %>%
+  rename(new_infections = DX_NEW,
+         new_recovered = RECOVERED_NEW,
+         count_susceptible = SUSCEPTIBLE,
+         current_infected = INFECTED_CURRENT,
+         cumulative_infected = INFECTED_CUMULATIVE,
+         cumulative_recovered = RECOVERED_CUMULATIVE,
+         new_severe = SEVERE_NEW,
+         cumulative_severe = SEVERE_CUMULATIVE,
+         age_cat = AGE_CATEGORY,
+         sex = SEX,
+         race_ethnicity = RACE_ETH,
+         report_date = DT_REPORT,
+         dt_diagnosis = DT_DX,
+         pop = POPULATION) %>%
+  mutate(county = "Los Angeles",
+         dt_diagnosis = as.Date(dt_diagnosis, format = "%d%b%Y"),
+         time_int = NA_character_,
+         new_unrecovered = NA_real_,
+         cumulative_unrecovered = NA_real_) %>%
+  select(county,
+         time_int,
+         new_infections,
+         new_recovered,
+         count_susceptible,
+         current_infected,
+         cumulative_infected,
+         cumulative_recovered,
+         new_unrecovered,
+         cumulative_unrecovered,
+         new_severe,
+         cumulative_severe,
+         age_cat,
+         sex,
+         race_ethnicity,
+         report_date,
+         dt_diagnosis,
+         pop)
+
+```
+
+Stack CA and LA flu data
+
+```{r}
+
+flu_CA_LA <- rbind(flu_CA, flu_LA)
+
+```
