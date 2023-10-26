@@ -105,6 +105,21 @@ flu <- flu_CA_LA %>%
 
 vax <- source_vax_CA %>%
   rename_with(~ tolower(gsub(".","_",.x,fixed=TRUE))) %>%
-  rename(pop = estimated_population)
+  rename(pop = estimated_population) %>%
+  mutate(demographic_value = case_when(demographic_value == "Under 5" ~ "0-17",
+                                       demographic_value == "5-11" ~ "0-17",
+                                       demographic_value == "12-17" ~ "0-17",
+                                       demographic_value == "American Indian or Alaska Native" ~ "American Indian or Alaska Native, Non-Hispanic",
+                                       demographic_value == "Asian" ~ "Asian, Non-Hispanic",
+                                       demographic_value == "Black or African American" ~ "Black, Non-Hispanic",
+                                       demographic_value == "Latino" ~ "Hispanic (any race)",
+                                       demographic_value == "Multiracial" ~ "0-17",
+                                       demographic_value == "Native Hawaiian or Other Pacific Islander" ~ "Native Hawaiian or Pacific Islander, Non-Hispanic",
+                                       demographic_value == "White" ~ "White, Non-Hispanic",
+                                       demographic_value == "Unknown/undifferentiated" ~ "Unknown",
+                                       TRUE ~ demographic_value))
+  
 
+unique(flu$age_cat)
+unique(vax$demographic_value)
 ```
