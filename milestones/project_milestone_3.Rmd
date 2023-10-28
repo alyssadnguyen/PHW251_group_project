@@ -28,7 +28,7 @@ source_flu_CA <- read.csv("~/PHW251_group_project/data/sim_flu_CA.csv")
 
 ## Stack flu data sets
 
-Rework CA flu data
+Clean CA flu data
 
 ```{r}
 flu_CA <- source_flu_CA %>%
@@ -48,7 +48,7 @@ flu_CA <- source_flu_CA %>%
 # do we need to do something with time_int which is presented as int? Maybe as.Date
 ```
 
-Rework LA flu data to match CA flu data
+Clean LA flu data to match CA flu data
 
 ```{r}
 
@@ -93,7 +93,7 @@ flu_LA <- source_flu_LA %>%
 
 ```
 
-Stack CA and LA flu data
+Stack CA and LA flu data, and restructure to match vax data
 
 ```{r}
 
@@ -101,9 +101,74 @@ flu_CA_LA <- rbind(flu_CA, flu_LA)
 
 colSums(is.na(flu_CA_LA))
 
-#need only selected fields
-flu <- flu_CA_LA %>%
-  select(county,new_infections,age_cat,sex,race_ethnicity,dt_diagnosis,pop)
+#restructure flu data so one demographic variable per row. Done once for new_infections and again for pop
+
+flu_age <- flu_CA_LA %>%
+  group_by(county,age_cat,dt_diagnosis) %>%
+  summarise(new_infections = sum(new_infections)) %>%
+  ungroup()  %>%
+  mutate(demographic_category = "Age Group") %>%
+  rename(demographic_value = age_cat) 
+
+flu_sex <- flu_CA_LA %>%
+  group_by(county,sex,dt_diagnosis) %>%
+  summarise(new_infections = sum(new_infections)) %>%
+  ungroup() %>%
+  mutate(demographic_category = "Gender") %>%
+  rename(demographic_value = sex)
+
+flu_race <- flu_CA_LA %>%
+  group_by(county,race_ethnicity,dt_diagnosis) %>%
+  summarise(new_infections = sum(new_infections)) %>%
+  ungroup() %>%
+  mutate(demographic_category = "Race/Ethnicity") %>%
+  rename(demographic_value = race_ethnicity)
+
+flu_cases <- rbind(flu_age, flu_sex, flu_race)
+
+# var <- c("age_cat", "sex", "race_ethnicity")
+# value <- c("Age Group", "Gender", "Race/Ethnicity")
+# 
+# for (i in 1:length(var)) {
+#   flu_var[i] <- flu_CA_LA %>%
+#     group_by(county,var[i],dt_diagnosis) %>%
+#     summarise(new_infections = sum(new_infections)) %>%
+#     ungroup() %>%
+#     mutate(demographic_category = value[i]) %>%
+#     rename(demographic_value = var[i])
+# }
+
+# restructure flu pop column so only one demographic variable per column
+
+pop_flu_age <- flu_CA_LA %>%
+  distinct(county,age_cat,sex,race_ethnicity,pop) %>%
+  group_by(county,age_cat) %>%
+  summarise(pop = sum(pop)) %>%
+  ungroup() %>%
+  rename(demographic_value = age_cat)
+
+pop_flu_sex <- flu_CA_LA %>%
+  distinct(county,age_cat,sex,race_ethnicity,pop) %>%
+  group_by(county,sex) %>%
+  summarise(pop = sum(pop)) %>%
+  ungroup() %>%
+  rename(demographic_value = sex)
+
+pop_flu_race <- flu_CA_LA %>%
+  distinct(county,age_cat,sex,race_ethnicity,pop) %>%
+  group_by(county,race_ethnicity) %>%
+  summarise(pop = sum(pop)) %>%
+  ungroup() %>%
+  rename(demographic_value = race_ethnicity)
+
+flu_pop <- rbind(pop_flu_age, pop_flu_sex, pop_flu_race)
+
+# join both new_infection and pop
+
+flu <- flu_cases %>%
+  full_join(flu_pop, by = c("county","demographic_value")) %>%
+  mutate(week_beginning = floor_date(dt_diagnosis,"week"))
+
 ```
 
 ## Rework COVID data
@@ -125,14 +190,25 @@ vax <- source_vax_CA %>%
                                  demographic_value == "Multiracial" ~ "Multiracial (two or more of above races), Non-Hispanic",
                                  demographic_value == "Native Hawaiian or Other Pacific Islander" ~ "Native Hawaiian or Pacific Islander, Non-Hispanic",
                                  demographic_value == "White" ~ "White, Non-Hispanic",
-          #  demographic_value == "Other Race" ~ "Unknown",
-         # demographic_value == "Unknown/undifferentiated" ~ "Unknown gender", or as NA since we don't have such data in flu 
-                                       TRUE ~ demographic_value))
+                              #  demographic_value == "Other Race" ~ "Unknown",
+                              #  demographic_value == "Unknown/undifferentiated" ~ "Unknown gender", or as NA since we don't have such data in flu 
+                                 TRUE ~ demographic_value)) %>%
+  group_by(county,demographic_category,demographic_value,dt_admin) %>%
+  summarise(pop=sum(pop),
+            total_partial_vaccinated = sum(total_partial_vaccinated),
+            cumulative_fully_vaccinated = sum(cumulative_fully_vaccinated),
+            cumulative_at_least_one_dose = sum(cumulative_at_least_one_dose),
+            cumulative_up_to_date_vax = sum(cumulative_up_to_date_vax)) %>%
+  ungroup() %>%
+  mutate(dt_admin = as.Date(dt_admin),
+        week_beginning = floor_date(dt_admin, "week"))
 
 
 unique(flu_CA_LA$age_cat)
 unique(vax$demographic_category)
 unique(vax$s)
+
+
 ```
 
-## Notes from Will:  It would need to be COVID vax rates affect flu disease rates, since there's nothing in the datasets measures flu vax rates.
+Notes from Will:  It would need to be COVID vax rates affect flu disease rates, since there's nothing in the datasets measures flu vax rates.
