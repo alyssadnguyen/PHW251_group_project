@@ -19,7 +19,12 @@ library(dplyr)
 source_vax_CA <- read.csv("~/PHW251_group_project/data/ca_vax_rates_quarter.csv")
 source_flu_LA <- read.csv("~/PHW251_group_project/data/sim_flu_LACounty_pop.csv")
 source_flu_CA <- read.csv("~/PHW251_group_project/data/sim_flu_CA.csv")
+
+#str(source_flu_CA)
+#str(source_flu_LA)
+#str(source_vax_CA)
 ```
+
 
 ## Stack flu data sets
 
@@ -36,9 +41,11 @@ flu_CA <- source_flu_CA %>%
                                     race_ethnicity == "6" ~ "Multiracial (two or more of above races), Non-Hispanic",
                                     race_ethnicity == "7" ~ "Hispanic (any race)",
                                     race_ethnicity == "9" ~ "Unknown"),
+                                    # TRUE ~ "Unknown"
          report_date = as.Date(report_date, format = "%Y-%m-%d"),
          dt_diagnosis = as.Date(dt_diagnosis, format = "%Y-%m-%d"))
 
+# do we need to do something with time_int which is presented as int? Maybe as.Date
 ```
 
 Rework LA flu data to match CA flu data
@@ -105,21 +112,27 @@ flu <- flu_CA_LA %>%
 
 vax <- source_vax_CA %>%
   rename_with(~ tolower(gsub(".","_",.x,fixed=TRUE))) %>%
-  rename(pop = estimated_population) %>%
-  mutate(demographic_value = case_when(demographic_value == "Under 5" ~ "0-17",
-                                       demographic_value == "5-11" ~ "0-17",
-                                       demographic_value == "12-17" ~ "0-17",
-                                       demographic_value == "American Indian or Alaska Native" ~ "American Indian or Alaska Native, Non-Hispanic",
-                                       demographic_value == "Asian" ~ "Asian, Non-Hispanic",
-                                       demographic_value == "Black or African American" ~ "Black, Non-Hispanic",
-                                       demographic_value == "Latino" ~ "Hispanic (any race)",
-                                       demographic_value == "Multiracial" ~ "0-17",
-                                       demographic_value == "Native Hawaiian or Other Pacific Islander" ~ "Native Hawaiian or Pacific Islander, Non-Hispanic",
-                                       demographic_value == "White" ~ "White, Non-Hispanic",
-                                       demographic_value == "Unknown/undifferentiated" ~ "Unknown",
+  rename(pop = estimated_population,
+         county = county_name) %>%
+  mutate(dt_admin = as.Date(dt_admin, format = "%Y-%m-%d"),
+    demographic_value = case_when(demographic_value == "Under 5" ~ "0-17",
+                                 demographic_value == "5-11" ~ "0-17",
+                                 demographic_value == "12-17" ~ "0-17",
+                                 demographic_value == "American Indian or Alaska Native" ~ "American Indian or Alaska Native, Non-Hispanic",
+                                 demographic_value == "Asian" ~ "Asian, Non-Hispanic",
+                                 demographic_value == "Black or African American" ~ "Black, Non-Hispanic",
+                                 demographic_value == "Latino" ~ "Hispanic (any race)",
+                                 demographic_value == "Multiracial" ~ "Multiracial (two or more of above races), Non-Hispanic",
+                                 demographic_value == "Native Hawaiian or Other Pacific Islander" ~ "Native Hawaiian or Pacific Islander, Non-Hispanic",
+                                 demographic_value == "White" ~ "White, Non-Hispanic",
+          #  demographic_value == "Other Race" ~ "Unknown",
+         # demographic_value == "Unknown/undifferentiated" ~ "Unknown gender", or as NA since we don't have such data in flu 
                                        TRUE ~ demographic_value))
-  
 
-unique(flu$age_cat)
-unique(vax$demographic_value)
+
+unique(flu_CA_LA$age_cat)
+unique(vax$demographic_category)
+unique(vax$s)
 ```
+
+## Notes from Will:  It would need to be COVID vax rates affect flu disease rates, since there's nothing in the datasets measures flu vax rates.
