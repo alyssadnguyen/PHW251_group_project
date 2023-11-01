@@ -180,6 +180,7 @@ vax <- source_vax_CA %>%
   rename(pop = estimated_population,
          county = county_name) %>%
   mutate(dt_admin = as.Date(dt_admin, format = "%Y-%m-%d"),
+         week_beginning = floor_date(dt_admin, "week"),
     demographic_value = case_when(demographic_value == "Under 5" ~ "0-17",
                                  demographic_value == "5-11" ~ "0-17",
                                  demographic_value == "12-17" ~ "0-17",
@@ -191,17 +192,16 @@ vax <- source_vax_CA %>%
                                  demographic_value == "Native Hawaiian or Other Pacific Islander" ~ "Native Hawaiian or Pacific Islander, Non-Hispanic",
                                  demographic_value == "White" ~ "White, Non-Hispanic",
                               #  demographic_value == "Other Race" ~ "Unknown",
-                              #  demographic_value == "Unknown/undifferentiated" ~ "Unknown gender", or as NA since we don't have such data in flu 
+                              #  demographic_value == "Unknown/undifferentiated" ~ "Unknown gender", or as NA since we don't have such data in flu and drop it?
                                  TRUE ~ demographic_value)) %>%
+  # pivot_wider(names_from=demographic_category, values_from=demographic_value) %>%
   group_by(county,demographic_category,demographic_value,dt_admin) %>%
   summarise(pop=sum(pop),
             total_partial_vaccinated = sum(total_partial_vaccinated),
             cumulative_fully_vaccinated = sum(cumulative_fully_vaccinated),
             cumulative_at_least_one_dose = sum(cumulative_at_least_one_dose),
             cumulative_up_to_date_vax = sum(cumulative_up_to_date_vax)) %>%
-  ungroup() %>%
-  mutate(dt_admin = as.Date(dt_admin),
-        week_beginning = floor_date(dt_admin, "week"))
+  ungroup() 
 
 
 unique(flu_CA_LA$age_cat)
