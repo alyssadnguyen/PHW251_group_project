@@ -2,7 +2,29 @@
 title: "project_milestone_3"
 output: html_document
 date: "2023-10-26"
+editor_options: 
+  markdown: 
+    wrap: 72
 ---
+
+# Milestone 3 Response
+
+-   Subset rows or columns, as needed subset vax data to bfsdf
+
+-   Create new variables needed for analysis (minimum 2) New variables
+    should be created based on existing columns; for example Calculating
+    a rate Combining character strings Aggregation Clean variables
+    needed for analysis (minimum 2) Examples Recode invalid values
+    Handle missing data Recode categories Data re-structured as needed
+    (aggregated/summarized and/or pivoted) Data dictionary based on
+    clean dataset (minimum 4 data elements), including: Variable name
+    Data type Description One or more tables with descriptive statistics
+    for 4 data elements Html output that is professionally prepared for
+    presentation Only the necessary information is outputted (you should
+    suppress, for example, entire data frame outputs) Use of headers and
+    sub headers to create an organized document
+
+# CODE BELOW
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
@@ -20,14 +42,13 @@ source_vax_CA <- read.csv("~/PHW251_group_project/data/ca_vax_rates_quarter.csv"
 source_flu_LA <- read.csv("~/PHW251_group_project/data/sim_flu_LACounty_pop.csv")
 source_flu_CA <- read.csv("~/PHW251_group_project/data/sim_flu_CA.csv")
 
-str(source_flu_CA)
+#str(source_flu_CA)
 #str(source_flu_LA)
 #str(source_vax_CA)
 
-unique(source_flu_CA$race_ethnicity)
-unique(source_flu_LA$RACE_ETH)
+#unique(source_flu_CA$race_ethnicity)
+#unique(source_flu_LA$RACE_ETH)
 ```
-
 
 ## Stack flu data sets
 
@@ -104,7 +125,7 @@ Stack CA and LA flu data, and restructure to match vax data
 
 flu_CA_LA <- rbind(flu_CA, flu_LA)
 
-colSums(is.na(flu_CA_LA))
+#colSums(is.na(flu_CA_LA))
 
 #restructure flu data so one demographic variable per row. Done once for new_infections and again for pop
 
@@ -178,7 +199,7 @@ flu_cases <- rbind(flu_age, flu_sex, flu_race)
 
  flu <- flu_cases %>%
    full_join(flu_pop, by = c("county","demographic_value","demographic_category")) %>%
-   mutate(month = floor_date(dt_diagnosis,"week"))
+   mutate(year_month = format(as.Date(dt_diagnosis), "%Y-%m"))
 
 ```
 
@@ -210,15 +231,74 @@ vax <- source_vax_CA %>%
             cumulative_fully_vaccinated = sum(cumulative_fully_vaccinated),
             cumulative_at_least_one_dose = sum(cumulative_at_least_one_dose),
             cumulative_up_to_date_vax = sum(cumulative_up_to_date_vax)) %>%
-  ungroup()
+  ungroup() %>%
+  filter(dt_admin >= "2022-09-24" & dt_admin <= "2023-06-10") %>%
+  mutate(year_month = format(as.Date(dt_admin), "%Y-%m"))
 #  pivot_wider(names_from=demographic_category, values_from=demographic_value)
 
 
-unique(flu_CA_LA$age_cat)
-unique(vax$demographic_category)
-unique(source_vax_CA$Demographic.Value)
+#unique(flu_CA_LA$age_cat)
+#unique(vax$demographic_category)
+#unique(source_vax_CA$Demographic.Value)
 
 
 ```
 
-Notes from Will:  It would need to be COVID vax rates affect flu disease rates, since there's nothing in the datasets measures flu vax rates.
+Notes from Will: It would need to be COVID vax rates affect flu disease
+rates, since there's nothing in the data sets measures flu vax rates.
+
+## Aggregate flu data
+
+```{r}
+
+min(vax$dt_admin)
+max(vax$dt_admin)
+
+min(flu$dt_diagnosis)
+max(flu$dt_diagnosis)
+
+flu_counts_by_demo <- flu %>%
+  group_by(demographic_category,demographic_value) %>%
+  summarise(new_infections = sum(new_infections),
+            new_severe = sum(new_severe)) %>%
+  ungroup()
+
+flu_pop_demo_state <- flu_pop %>%
+  group_by(demographic_category,demographic_value) %>%
+  summarise(pop = sum(pop)) %>%
+  ungroup()
+
+flu_pop_county <- flu_pop %>%
+  group_by(county) %>%
+  summarise(pop = sum(pop)) %>%
+  ungroup()
+
+flu_rate_by_demo <- flu_counts_by_demo %>%
+  left_join(flu_pop_demo_state, by = c("demographic_value","demographic_category")) %>%
+  mutate(rate_infections = (new_infections/pop)*1000,
+         rate_severe = (new_severe/pop)*1000) %>%
+  ungroup()
+
+summary(flu_rate_by_demo$rate_severe)
+summary(flu_rate_by_demo$rate_infections)
+
+
+flu_counts_by_month <- flu %>%
+  group_by(year_month) %>%
+  summarise(new_infections = sum(new_infections),
+            new_severe = sum(new_severe)) %>%
+  ungroup()
+
+
+
+#sum covid vax
+
+vax_count_by_demo <- vax %>%
+  group_by(demographic_category,demographic_value) %>%
+  summarise(total_partial_vaccinated = sum(total_partial_vaccinated, na.rm = TRUE),
+            cumulative_at_least_one_dose = sum(cumulative_at_least_one_dose, na.rm = TRUE)) %>%
+  ungroup()
+
+
+
+```
