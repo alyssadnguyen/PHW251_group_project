@@ -20,9 +20,12 @@ source_vax_CA <- read.csv("~/PHW251_group_project/data/ca_vax_rates_quarter.csv"
 source_flu_LA <- read.csv("~/PHW251_group_project/data/sim_flu_LACounty_pop.csv")
 source_flu_CA <- read.csv("~/PHW251_group_project/data/sim_flu_CA.csv")
 
-#str(source_flu_CA)
+str(source_flu_CA)
 #str(source_flu_LA)
 #str(source_vax_CA)
+
+unique(source_flu_CA$race_ethnicity)
+unique(source_flu_LA$RACE_ETH)
 ```
 
 
@@ -41,9 +44,11 @@ flu_CA <- source_flu_CA %>%
                                     race_ethnicity == "6" ~ "Multiracial (two or more of above races), Non-Hispanic",
                                     race_ethnicity == "7" ~ "Hispanic (any race)",
                                     race_ethnicity == "9" ~ "Unknown"),
-                                    # TRUE ~ "Unknown"
+                                    #TRUE ~ "Unknown"
          report_date = as.Date(report_date, format = "%Y-%m-%d"),
          dt_diagnosis = as.Date(dt_diagnosis, format = "%Y-%m-%d"))
+
+
 
 # do we need to do something with time_int which is presented as int? Maybe as.Date
 ```
@@ -103,32 +108,35 @@ colSums(is.na(flu_CA_LA))
 
 #restructure flu data so one demographic variable per row. Done once for new_infections and again for pop
 
-flu_age <- flu_CA_LA %>%
-  group_by(county,age_cat,dt_diagnosis) %>%
-  summarise(new_infections = sum(new_infections)) %>%
-  ungroup()  %>%
-  mutate(demographic_category = "Age Group") %>%
-  rename(demographic_value = age_cat) 
+ flu_age <- flu_CA_LA %>%
+   group_by(county,age_cat,dt_diagnosis) %>%
+   summarise(new_infections = sum(new_infections),
+             new_severe = sum(new_severe)) %>%
+   ungroup()  %>%
+   mutate(demographic_category = "Age Group") %>%
+   rename(demographic_value = age_cat)
 
 flu_sex <- flu_CA_LA %>%
-  group_by(county,sex,dt_diagnosis) %>%
-  summarise(new_infections = sum(new_infections)) %>%
-  ungroup() %>%
-  mutate(demographic_category = "Gender") %>%
-  rename(demographic_value = sex)
+   group_by(county,sex,dt_diagnosis) %>%
+   summarise(new_infections = sum(new_infections),
+             new_severe = sum(new_severe)) %>%
+   ungroup() %>%
+   mutate(demographic_category = "Gender") %>%
+   rename(demographic_value = sex)
 
-flu_race <- flu_CA_LA %>%
-  group_by(county,race_ethnicity,dt_diagnosis) %>%
-  summarise(new_infections = sum(new_infections)) %>%
-  ungroup() %>%
-  mutate(demographic_category = "Race/Ethnicity") %>%
-  rename(demographic_value = race_ethnicity)
+ flu_race <- flu_CA_LA %>%
+   group_by(county,race_ethnicity,dt_diagnosis) %>%
+   summarise(new_infections = sum(new_infections),
+             new_severe = sum(new_severe)) %>%
+   ungroup() %>%
+   mutate(demographic_category = "Race/Ethnicity") %>%
+   rename(demographic_value = race_ethnicity)
 
 flu_cases <- rbind(flu_age, flu_sex, flu_race)
 
 # var <- c("age_cat", "sex", "race_ethnicity")
 # value <- c("Age Group", "Gender", "Race/Ethnicity")
-# 
+#
 # for (i in 1:length(var)) {
 #   flu_var[i] <- flu_CA_LA %>%
 #     group_by(county,var[i],dt_diagnosis) %>%
@@ -140,34 +148,37 @@ flu_cases <- rbind(flu_age, flu_sex, flu_race)
 
 # restructure flu pop column so only one demographic variable per column
 
-pop_flu_age <- flu_CA_LA %>%
-  distinct(county,age_cat,sex,race_ethnicity,pop) %>%
-  group_by(county,age_cat) %>%
-  summarise(pop = sum(pop)) %>%
-  ungroup() %>%
-  rename(demographic_value = age_cat)
+ pop_flu_age <- flu_CA_LA %>%
+   distinct(county,age_cat,sex,race_ethnicity,pop) %>%
+   group_by(county,age_cat) %>%
+   summarise(pop = sum(pop)) %>%
+   ungroup() %>%
+   rename(demographic_value = age_cat) %>%
+   mutate(demographic_category = "Age Group")
 
-pop_flu_sex <- flu_CA_LA %>%
-  distinct(county,age_cat,sex,race_ethnicity,pop) %>%
-  group_by(county,sex) %>%
-  summarise(pop = sum(pop)) %>%
-  ungroup() %>%
-  rename(demographic_value = sex)
+ pop_flu_sex <- flu_CA_LA %>%
+   distinct(county,age_cat,sex,race_ethnicity,pop) %>%
+   group_by(county,sex) %>%
+   summarise(pop = sum(pop)) %>%
+   ungroup() %>%
+   rename(demographic_value = sex) %>%
+   mutate(demographic_category = "Gender")
 
-pop_flu_race <- flu_CA_LA %>%
-  distinct(county,age_cat,sex,race_ethnicity,pop) %>%
-  group_by(county,race_ethnicity) %>%
-  summarise(pop = sum(pop)) %>%
-  ungroup() %>%
-  rename(demographic_value = race_ethnicity)
+ pop_flu_race <- flu_CA_LA %>%
+   distinct(county,age_cat,sex,race_ethnicity,pop) %>%
+   group_by(county,race_ethnicity) %>%
+   summarise(pop = sum(pop)) %>%
+   ungroup() %>%
+   rename(demographic_value = race_ethnicity) %>%
+   mutate(demographic_category = "Race/Ethnicity")
 
-flu_pop <- rbind(pop_flu_age, pop_flu_sex, pop_flu_race)
+ flu_pop <- rbind(pop_flu_age, pop_flu_sex, pop_flu_race)
 
 # join both new_infection and pop
 
-flu <- flu_cases %>%
-  full_join(flu_pop, by = c("county","demographic_value")) %>%
-  mutate(week_beginning = floor_date(dt_diagnosis,"week"))
+ flu <- flu_cases %>%
+   full_join(flu_pop, by = c("county","demographic_value","demographic_category")) %>%
+   mutate(month = floor_date(dt_diagnosis,"week"))
 
 ```
 
@@ -180,7 +191,6 @@ vax <- source_vax_CA %>%
   rename(pop = estimated_population,
          county = county_name) %>%
   mutate(dt_admin = as.Date(dt_admin, format = "%Y-%m-%d"),
-         week_beginning = floor_date(dt_admin, "week"),
     demographic_value = case_when(demographic_value == "Under 5" ~ "0-17",
                                  demographic_value == "5-11" ~ "0-17",
                                  demographic_value == "12-17" ~ "0-17",
@@ -194,19 +204,19 @@ vax <- source_vax_CA %>%
                               #  demographic_value == "Other Race" ~ "Unknown",
                               #  demographic_value == "Unknown/undifferentiated" ~ "Unknown gender", or as NA since we don't have such data in flu and drop it?
                                  TRUE ~ demographic_value)) %>%
-  # pivot_wider(names_from=demographic_category, values_from=demographic_value) %>%
   group_by(county,demographic_category,demographic_value,dt_admin) %>%
   summarise(pop=sum(pop),
             total_partial_vaccinated = sum(total_partial_vaccinated),
             cumulative_fully_vaccinated = sum(cumulative_fully_vaccinated),
             cumulative_at_least_one_dose = sum(cumulative_at_least_one_dose),
             cumulative_up_to_date_vax = sum(cumulative_up_to_date_vax)) %>%
-  ungroup() 
+  ungroup()
+#  pivot_wider(names_from=demographic_category, values_from=demographic_value)
 
 
 unique(flu_CA_LA$age_cat)
 unique(vax$demographic_category)
-unique(vax$s)
+unique(source_vax_CA$Demographic.Value)
 
 
 ```
