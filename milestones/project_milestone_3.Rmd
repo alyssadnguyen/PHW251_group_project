@@ -9,22 +9,7 @@ editor_options:
 
 # Milestone 3 Response
 
--   Subset rows or columns, as needed subset vax data to bfsdf
-
--   Create new variables needed for analysis (minimum 2) New variables
-    should be created based on existing columns; for example Calculating
-    a rate Combining character strings Aggregation Clean variables
-    needed for analysis (minimum 2) Examples Recode invalid values
-    Handle missing data Recode categories Data re-structured as needed
-    (aggregated/summarized and/or pivoted) Data dictionary based on
-    clean dataset (minimum 4 data elements), including: Variable name
-    Data type Description One or more tables with descriptive statistics
-    for 4 data elements Html output that is professionally prepared for
-    presentation Only the necessary information is outputted (you should
-    suppress, for example, entire data frame outputs) Use of headers and
-    sub headers to create an organized document
-
-# CODE BELOW
+## Code Below
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
@@ -32,7 +17,7 @@ knitr::opts_chunk$set(echo = TRUE)
 
 ## Import data
 
-Set packages and import data
+-   Set packages and import data
 
 ```{r}
 library(tidyverse)
@@ -52,29 +37,34 @@ source_flu_CA <- read.csv("~/PHW251_group_project/data/sim_flu_CA.csv")
 
 ## Stack flu data sets
 
-Clean CA flu data
+-   Clean CA flu data
+
+    -   rewrite values in the sex column to lower case
+
+    -   rewrite race/ethnicity categories according to the
+        categorization as definied by California Department of Finance
+
+    -   change data types for two columns
 
 ```{r}
 flu_CA <- source_flu_CA %>%
   mutate(county = str_replace(county,"County",""),
-         race_ethnicity = case_when(race_ethnicity == "1" ~ "White, Non-Hispanic",
-                                    race_ethnicity == "2" ~ "Black, Non-Hispanic",
-                                    race_ethnicity == "3" ~ "American Indian or Alaska Native, Non-Hispanic",
-                                    race_ethnicity == "4" ~ "Asian, Non-Hispanic",
-                                    race_ethnicity == "5" ~ "Native Hawaiian or Pacific Islander, Non-Hispanic",
-                                    race_ethnicity == "6" ~ "Multiracial (two or more of above races), Non-Hispanic",
-                                    race_ethnicity == "7" ~ "Hispanic (any race)",
-                                    race_ethnicity == "9" ~ "Unknown"),
-                                    #TRUE ~ "Unknown"
-         report_date = as.Date(report_date, format = "%Y-%m-%d"),
-         dt_diagnosis = as.Date(dt_diagnosis, format = "%Y-%m-%d"))
+         sex = str_to_title(sex),
+         race_ethnicity = case_when(
+           race_ethnicity == "1" ~ "White, Non-Hispanic",
+           race_ethnicity == "2" ~ "Black, Non-Hispanic",
+           race_ethnicity == "3" ~ "American Indian or Alaska Native, Non-Hispanic",
+           race_ethnicity == "4" ~ "Asian, Non-Hispanic",
+           race_ethnicity == "5" ~ "Native Hawaiian or Pacific Islander, Non-Hispanic",
+           race_ethnicity == "6" ~ "Multiracial (two or more of above races), Non-Hispanic",
+           race_ethnicity == "7" ~ "Hispanic (any race)",
+           race_ethnicity == "9" ~ "Unknown"),
+  report_date = as.Date(report_date, format = "%Y-%m-%d"),
+  dt_diagnosis = as.Date(dt_diagnosis, format = "%Y-%m-%d"))
 
-
-
-# do we need to do something with time_int which is presented as int? Maybe as.Date
 ```
 
-Clean LA flu data to match CA flu data
+-   Clean LA flu data to match CA flu data
 
 ```{r}
 
@@ -94,6 +84,7 @@ flu_LA <- source_flu_LA %>%
          dt_diagnosis = DT_DX,
          pop = POPULATION) %>%
   mutate(county = "Los Angeles",
+         sex = str_to_title(sex),
          dt_diagnosis = as.Date(dt_diagnosis, format = "%d%b%Y"),
          time_int = NA_character_,
          new_unrecovered = NA_real_,
@@ -119,17 +110,20 @@ flu_LA <- source_flu_LA %>%
 
 ```
 
-Stack CA and LA flu data, and restructure to match vax data
+-   Stack CA and LA flu data, and restructure to match vax data
 
 ```{r}
 
 flu_CA_LA <- rbind(flu_CA, flu_LA)
 
-#colSums(is.na(flu_CA_LA))
+colSums(is.na(flu_CA_LA))
+```
 
-#restructure flu data so one demographic variable per row. Done once for new_infections and again for pop
+-   Restructure flu data so one demographic variable per row. Done once
+    for new_infections and again for pop
 
- flu_age <- flu_CA_LA %>%
+```{r}
+flu_age <- flu_CA_LA %>%
    group_by(county,age_cat,dt_diagnosis) %>%
    summarise(new_infections = sum(new_infections),
              new_severe = sum(new_severe)) %>%
@@ -166,9 +160,12 @@ flu_cases <- rbind(flu_age, flu_sex, flu_race)
 #     mutate(demographic_category = value[i]) %>%
 #     rename(demographic_value = var[i])
 # }
+```
 
-# restructure flu pop column so only one demographic variable per column
+-   Restructure flu pop column so only one demographic variable per
+    column
 
+```{r}
  pop_flu_age <- flu_CA_LA %>%
    distinct(county,age_cat,sex,race_ethnicity,pop) %>%
    group_by(county,age_cat) %>%
@@ -193,17 +190,28 @@ flu_cases <- rbind(flu_age, flu_sex, flu_race)
    rename(demographic_value = race_ethnicity) %>%
    mutate(demographic_category = "Race/Ethnicity")
 
- flu_pop <- rbind(pop_flu_age, pop_flu_sex, pop_flu_race)
+```
 
-# join both new_infection and pop
+-   Join both new_infection and pop
 
- flu <- flu_cases %>%
+```{r}
+
+flu_pop <- rbind(pop_flu_age, pop_flu_sex, pop_flu_race)
+
+flu <- flu_cases %>%
    full_join(flu_pop, by = c("county","demographic_value","demographic_category")) %>%
    mutate(year_month = format(as.Date(dt_diagnosis), "%Y-%m"))
 
 ```
 
 ## Rework COVID data
+
+-   Recode age categories
+    -   change data types for several columns
+
+    -   rename coulmns to match flu data
+-   Find overlapping period between two datasets - from 2022-09-24 to
+    2023-06-10
 
 ```{r}
 
@@ -212,50 +220,60 @@ vax <- source_vax_CA %>%
   rename(pop = estimated_population,
          county = county_name) %>%
   mutate(dt_admin = as.Date(dt_admin, format = "%Y-%m-%d"),
-    demographic_value = case_when(demographic_value == "Under 5" ~ "0-17",
-                                 demographic_value == "5-11" ~ "0-17",
-                                 demographic_value == "12-17" ~ "0-17",
-                                 demographic_value == "American Indian or Alaska Native" ~ "American Indian or Alaska Native, Non-Hispanic",
-                                 demographic_value == "Asian" ~ "Asian, Non-Hispanic",
-                                 demographic_value == "Black or African American" ~ "Black, Non-Hispanic",
-                                 demographic_value == "Latino" ~ "Hispanic (any race)",
-                                 demographic_value == "Multiracial" ~ "Multiracial (two or more of above races), Non-Hispanic",
-                                 demographic_value == "Native Hawaiian or Other Pacific Islander" ~ "Native Hawaiian or Pacific Islander, Non-Hispanic",
-                                 demographic_value == "White" ~ "White, Non-Hispanic",
+    demographic_value = case_when(
+          demographic_value == "Under 5" ~ "0-17",
+          demographic_value == "5-11" ~ "0-17",
+          demographic_value == "12-17" ~ "0-17",
+          demographic_value == "American Indian or Alaska Native" ~ "American Indian or Alaska Native, Non-Hispanic",
+          demographic_value == "Asian" ~ "Asian, Non-Hispanic",
+          demographic_value == "Black or African American" ~ "Black, Non-Hispanic",
+          demographic_value == "Latino" ~ "Hispanic (any race)",
+          demographic_value == "Multiracial" ~ "Multiracial (two or more of above races), Non-Hispanic",
+          demographic_value == "Native Hawaiian or Other Pacific Islander" ~ "Native Hawaiian or Pacific Islander, Non-Hispanic",
+          demographic_value == "White" ~ "White, Non-Hispanic",
                               #  demographic_value == "Other Race" ~ "Unknown",
-                              #  demographic_value == "Unknown/undifferentiated" ~ "Unknown gender", or as NA since we don't have such data in flu and drop it?
-                                 TRUE ~ demographic_value)) %>%
+                              #  demographic_value == "Unknown/undifferentiated" ~ "Unknown gender"
+          TRUE ~ demographic_value)) %>%
   group_by(county,demographic_category,demographic_value,dt_admin) %>%
   summarise(pop=sum(pop),
-            total_partial_vaccinated = sum(total_partial_vaccinated),
-            cumulative_fully_vaccinated = sum(cumulative_fully_vaccinated),
-            cumulative_at_least_one_dose = sum(cumulative_at_least_one_dose),
-            cumulative_up_to_date_vax = sum(cumulative_up_to_date_vax)) %>%
+          total_partial_vaccinated = sum(total_partial_vaccinated),
+          cumulative_fully_vaccinated = sum(cumulative_fully_vaccinated),
+          cumulative_at_least_one_dose = sum(cumulative_at_least_one_dose),
+          cumulative_up_to_date_vax = sum(cumulative_up_to_date_vax)) %>%
   ungroup() %>%
   filter(dt_admin >= "2022-09-24" & dt_admin <= "2023-06-10") %>%
   mutate(year_month = format(as.Date(dt_admin), "%Y-%m"))
-#  pivot_wider(names_from=demographic_category, values_from=demographic_value)
-
-
-#unique(flu_CA_LA$age_cat)
-#unique(vax$demographic_category)
-#unique(source_vax_CA$Demographic.Value)
-
-
-```
-
-Notes from Will: It would need to be COVID vax rates affect flu disease
-rates, since there's nothing in the data sets measures flu vax rates.
-
-## Aggregate flu data
-
-```{r}
 
 min(vax$dt_admin)
 max(vax$dt_admin)
 
 min(flu$dt_diagnosis)
 max(flu$dt_diagnosis)
+
+#unique(flu_CA_LA$age_cat)
+#unique(vax$demographic_category)
+#unique(source_vax_CA$Demographic.Value)
+
+```
+
+## Aggregate flu data
+
+-   Create new variables needed for analysis
+
+    -   rate_infections
+
+    -   rate_severe
+
+-   New variables are created based on existing columns: new_infections
+    & new_severe
+
+-   Create datasets that we want to focus on later
+
+    -   flu_rate_by_demo - to see flu rate for certain demographic
+
+    -   flu_counts_by_month - to track flue rates over time
+
+```{r}
 
 flu_counts_by_demo <- flu %>%
   group_by(demographic_category,demographic_value) %>%
@@ -279,26 +297,83 @@ flu_rate_by_demo <- flu_counts_by_demo %>%
          rate_severe = (new_severe/pop)*1000) %>%
   ungroup()
 
-summary(flu_rate_by_demo$rate_severe)
-summary(flu_rate_by_demo$rate_infections)
-
-
 flu_counts_by_month <- flu %>%
   group_by(year_month) %>%
   summarise(new_infections = sum(new_infections),
             new_severe = sum(new_severe)) %>%
   ungroup()
 
+```
 
+## Sum COVID vax
 
-#sum covid vax
+-   Create new variables needed for analysis
 
+    -   rate_total_partial
+
+    -   rate_cum_one_dose
+
+-   Handle missing data in pop column
+
+-   New variables are created based on existing columns:
+    total_partial_vaccinated & cumulative_at_least_one_dose
+
+-   Create datasets that we want to focus on later
+
+    -   vax_rate_by_demo - to see vaccination rates for certain
+        demographic
+
+    -   vax_counts_by_month - to track vaccination rates over time
+
+```{r}
 vax_count_by_demo <- vax %>%
   group_by(demographic_category,demographic_value) %>%
   summarise(total_partial_vaccinated = sum(total_partial_vaccinated, na.rm = TRUE),
             cumulative_at_least_one_dose = sum(cumulative_at_least_one_dose, na.rm = TRUE)) %>%
   ungroup()
 
+vax_pop_demo_state <- vax %>%
+  group_by(demographic_category,demographic_value) %>%
+  summarise(pop = sum(pop, na.rm = TRUE)) %>%
+  ungroup()  %>% 
+  filter(demographic_value != "Unknown/undifferentiated", demographic_value != "Other Race", demographic_value != "Unknown")
 
+vax_rate_by_demo <- vax_count_by_demo %>%
+  left_join(vax_pop_demo_state, by = c("demographic_value","demographic_category")) %>%
+  mutate(rate_total_partial = (total_partial_vaccinated/pop)*1000,
+         rate_cum_one_dose = (cumulative_at_least_one_dose/pop)*1000) %>%
+  ungroup() %>%
+  drop_na()
+
+vax_counts_by_month <- vax %>%
+  group_by(year_month) %>%
+  summarise(total_partial_vaccinated = sum(total_partial_vaccinated, na.rm = TRUE),
+            cumulative_at_least_one_dose = sum(cumulative_at_least_one_dose, na.rm = TRUE)) %>%
+  ungroup()
 
 ```
+
+-   Data dictionary based on clean dataset
+
+```{r}
+
+summary(flu_rate_by_demo$rate_severe)
+summary(flu_rate_by_demo$rate_infections)
+
+summary(flu_counts_by_month$new_infections)
+summary(flu_counts_by_month$new_severe)
+
+summary(vax_rate_by_demo$rate_total_partial)
+summary(vax_rate_by_demo$rate_cum_one_dose)
+
+summary(vax_counts_by_month$total_partial_vaccinated)
+summary(vax_counts_by_month$cumulative_at_least_one_dose)
+```
+
+-   Data type Description One or more tables with descriptive statistics
+    for 4 data elements
+
+-   Html output that is professionally prepared for presentation
+
+    -   Only the necessary information is outputted (you should
+        suppress, for example, entire data frame outputs)
