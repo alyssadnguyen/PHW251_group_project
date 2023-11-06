@@ -1,5 +1,5 @@
 ---
-title: "project_milestone_3"
+title: "Project Milestone 3"
 output: html_document
 date: "2023-10-26"
 editor_options: 
@@ -7,13 +7,12 @@ editor_options:
     wrap: 72
 ---
 
-# Milestone 3 Response
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
 ```
 
-## Import data
+### Import data
 
 -   Set packages and import data
 
@@ -33,7 +32,7 @@ source_flu_CA <- read.csv("~/PHW251_group_project/data/sim_flu_CA.csv")
 #unique(source_flu_LA$RACE_ETH)
 ```
 
-## Clean and stack flu data sets
+### Clean and stack flu data sets
 
 -   Clean CA flu data
 
@@ -203,7 +202,7 @@ flu <- flu_cases %>%
 
 ```
 
-## Clean COVID data
+### Clean COVID data
 
 -   Recode age categories
 -   Change data types for several columns
@@ -242,11 +241,11 @@ vax <- source_vax_CA %>%
   filter(dt_admin >= "2022-09-24" & dt_admin <= "2023-06-10") %>%
   mutate(year_month = format(as.Date(dt_admin), "%Y-%m"))
 
-min(vax$dt_admin)
-max(vax$dt_admin)
+#min(vax$dt_admin)
+#max(vax$dt_admin)
 
-min(flu$dt_diagnosis)
-max(flu$dt_diagnosis)
+#min(flu$dt_diagnosis)
+#max(flu$dt_diagnosis)
 
 #unique(flu_CA_LA$age_cat)
 #unique(vax$demographic_category)
@@ -254,7 +253,7 @@ max(flu$dt_diagnosis)
 
 ```
 
-## Aggregate flu data
+### Aggregate flu data
 
 -   Create new variables needed for analysis
 
@@ -295,6 +294,15 @@ flu_rate_by_demo <- flu_counts_by_demo %>%
          rate_severe = (new_severe/pop)*1000) %>%
   ungroup()
 
+flu_rate_by_race <- flu_rate_by_demo %>%
+  filter(demographic_category == "Race/Ethnicity")
+
+flu_rate_by_age <- flu_rate_by_demo %>%
+  filter(demographic_category == "Age Group")
+
+flu_rate_by_sex <- flu_rate_by_demo %>%
+  filter(demographic_category == "Gender")
+
 flu_counts_by_month <- flu %>%
   group_by(year_month) %>%
   summarise(new_infections = sum(new_infections),
@@ -303,7 +311,7 @@ flu_counts_by_month <- flu %>%
 
 ```
 
-## Aggregate COVID vax data
+### Aggregate COVID vax data
 
 -   Create new variables needed for analysis
 
@@ -351,12 +359,12 @@ vax_counts_by_month <- vax %>%
 
 ```
 
-## Data Dictionary for Flu Data
+### Data Dictionary for Flu Data
 
 -   Data dictionary based on clean data set
 
 |                       |            |                                                                               |                                                                                                                                                                                                                                                                                                                      |       |
-|-----------------------|------------|-------------------------------------------------------------------------------|----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|-------|
+|--------|--------|--------|---------------------------------------|--------|
 | **Column Name**       | Format     | Definition                                                                    | Values                                                                                                                                                                                                                                                                                                               | Notes |
 | county                | Plain text | County of residence                                                           | California Counties                                                                                                                                                                                                                                                                                                  |       |
 | demogr aphic_value    | Plain text | Age, Race /Ethnicity, Gender                                                  | 0-17, 18-49, 50-64, 65+; MALE, FEMALE; "White, Non -Hispanic", "Black, Non -Hispanic", "American Indian or Alaska Native, Non -Hispanic", "Asian, Non -Hispanic", "Native Hawaiian or Pacific Islander, Non -Hispanic", " Multiracial (two or more of above races), Non -Hispanic", "Hispanic (any race)", "Unknown) |       |
@@ -367,17 +375,26 @@ vax_counts_by_month <- vax %>%
 | pop                   | Numeric    | Total population of demographic categories in county                          | 0-5153156                                                                                                                                                                                                                                                                                                            |       |
 | year_month            | Plain text | Year and month of diagnosis                                                   | 2022 -09:2023-06                                                                                                                                                                                                                                                                                                     |       |
 
-## Descriptive Statistics
+### Descriptive Statistics
 
 -   Data type Description One or more tables with descriptive statistics
     for 4 data elements
 
 ```{r}
 
-summary(flu_rate_by_demo$rate_severe)
-summary(flu_rate_by_demo$rate_infections)
+#Descriptive stats for count of new infections by race
+summary(flu_rate_by_race$rate_severe)
+#Descriptive stats for count of new severe infections by race
+summary(flu_rate_by_race$rate_infections)
 
+#Descriptive stats for count of new infections by age group
+summary(flu_rate_by_age$rate_severe)
+#Descriptive stats for count of new severe infections by age group
+summary(flu_rate_by_age$rate_infections)
+
+#Descriptive stats for count of new infections by month
 summary(flu_counts_by_month$new_infections)
+#Descriptive stats for count of new severe infections by month
 summary(flu_counts_by_month$new_severe)
 
 summary(vax_rate_by_demo$rate_total_partial)
