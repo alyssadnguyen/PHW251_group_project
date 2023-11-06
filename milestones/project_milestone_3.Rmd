@@ -1,24 +1,27 @@
 ---
 title: "Project Milestone 3"
 output: html_document
-date: "2023-10-26"
+date: "November 6, 2023"
 editor_options: 
   markdown: 
     wrap: 72
 ---
 
-
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
 ```
 
-### Import data
+### Scenario 1
+
+#### Import data
 
 -   Set packages and import data
 
 ```{r}
 library(tidyverse)
 library(dplyr)
+library(knitr)
+library(kableExtra)
 
 source_vax_CA <- read.csv("~/PHW251_group_project/data/ca_vax_rates_quarter.csv")
 source_flu_LA <- read.csv("~/PHW251_group_project/data/sim_flu_LACounty_pop.csv")
@@ -32,7 +35,7 @@ source_flu_CA <- read.csv("~/PHW251_group_project/data/sim_flu_CA.csv")
 #unique(source_flu_LA$RACE_ETH)
 ```
 
-### Clean and stack flu data sets
+#### Clean and stack flu data sets
 
 -   Clean CA flu data
 
@@ -202,13 +205,14 @@ flu <- flu_cases %>%
 
 ```
 
-### Clean COVID data
+#### Clean COVID data
 
 -   Recode age categories
 -   Change data types for several columns
 -   Rename columns to match flu data
 -   Find overlapping period between two data sets - from 2022-09-24 to
     2023-06-10
+-   Remove "Statewide" rows to be consistent with flu data
 
 ```{r}
 
@@ -238,7 +242,8 @@ vax <- source_vax_CA %>%
           cumulative_at_least_one_dose = sum(cumulative_at_least_one_dose),
           cumulative_up_to_date_vax = sum(cumulative_up_to_date_vax)) %>%
   ungroup() %>%
-  filter(dt_admin >= "2022-09-24" & dt_admin <= "2023-06-10") %>%
+  filter(dt_admin >= "2022-09-24" & dt_admin <= "2023-06-10",
+         county != "Statewide") %>%
   mutate(year_month = format(as.Date(dt_admin), "%Y-%m"))
 
 #min(vax$dt_admin)
@@ -253,7 +258,7 @@ vax <- source_vax_CA %>%
 
 ```
 
-### Aggregate flu data
+#### Aggregate flu data
 
 -   Create new variables needed for analysis
 
@@ -268,7 +273,7 @@ vax <- source_vax_CA %>%
 
     -   flu_rate_by_demo - to see flu rate for certain demographic
 
-    -   flu_counts_by_month - to track flu rates over time
+    -   flu_rate_by_month - to track flu rates over time
 
 ```{r}
 
@@ -284,9 +289,15 @@ flu_pop_demo_state <- flu_pop %>%
   ungroup()
 
 flu_pop_county <- flu_pop %>%
+  filter(demographic_category == "Age Group") %>%
   group_by(county) %>%
   summarise(pop = sum(pop)) %>%
   ungroup()
+
+flu_pop_ca <- flu_pop %>%
+  filter(demographic_category == "Age Group") %>%
+  summarise(pop = sum(pop)) %>%
+  mutate(county = "California")
 
 flu_rate_by_demo <- flu_counts_by_demo %>%
   left_join(flu_pop_demo_state, by = c("demographic_value","demographic_category")) %>%
@@ -303,15 +314,19 @@ flu_rate_by_age <- flu_rate_by_demo %>%
 flu_rate_by_sex <- flu_rate_by_demo %>%
   filter(demographic_category == "Gender")
 
-flu_counts_by_month <- flu %>%
+flu_rate_by_month <- flu %>%
   group_by(year_month) %>%
   summarise(new_infections = sum(new_infections),
             new_severe = sum(new_severe)) %>%
-  ungroup()
+  ungroup() %>%
+  mutate(county = "California") %>%
+  left_join(flu_pop_ca, by = "county") %>%
+  mutate(rate_infections = (new_infections/pop)*1000,
+         rate_severe = (new_severe/pop)*1000) 
 
 ```
 
-### Aggregate COVID vax data
+#### Aggregate COVID vax data
 
 -   Create new variables needed for analysis
 
@@ -329,7 +344,7 @@ flu_counts_by_month <- flu %>%
     -   vax_rate_by_demo - to see vaccination rates for certain
         demographic
 
-    -   vax_counts_by_month - to track vaccination rates over time
+    -   vax_rate_by_month - to track vaccination rates over time
 
 ```{r}
 vax_count_by_demo <- vax %>%
@@ -338,11 +353,23 @@ vax_count_by_demo <- vax %>%
             cumulative_at_least_one_dose = sum(cumulative_at_least_one_dose, na.rm = TRUE)) %>%
   ungroup()
 
-vax_pop_demo_state <- vax %>%
+vax_pop <- vax %>%
+  distinct(county,demographic_category,demographic_value, pop)%>% 
+  filter(demographic_value != "Unknown/undifferentiated", demographic_value != "Other Race", demographic_value != "Unknown")
+
+vax_pop_demo_state <- vax_pop %>%
   group_by(demographic_category,demographic_value) %>%
   summarise(pop = sum(pop, na.rm = TRUE)) %>%
-  ungroup()  %>% 
-  filter(demographic_value != "Unknown/undifferentiated", demographic_value != "Other Race", demographic_value != "Unknown")
+  ungroup()  
+
+vax_pop_county <- vax_pop %>%
+  filter(demographic_category == "Age Group") %>%
+  group_by(county) %>%
+  summarise(pop = sum(pop))
+
+vax_pop_ca <- vax_pop_county %>%
+  summarise(pop = sum(pop)) %>%
+  mutate(county = "California")
 
 vax_rate_by_demo <- vax_count_by_demo %>%
   left_join(vax_pop_demo_state, by = c("demographic_value","demographic_category")) %>%
@@ -351,11 +378,30 @@ vax_rate_by_demo <- vax_count_by_demo %>%
   ungroup() %>%
   drop_na()
 
-vax_counts_by_month <- vax %>%
+vax_rate_by_race <- vax_rate_by_demo %>%
+  filter(demographic_category == "Race/Ethnicity")
+
+vax_rate_by_age <- vax_rate_by_demo %>%
+  filter(demographic_category == "Age Group")
+
+vax_rate_by_sex <- vax_rate_by_demo %>%
+  filter(demographic_category == "Gender")
+
+vax_count_by_month <- vax %>%
   group_by(year_month) %>%
   summarise(total_partial_vaccinated = sum(total_partial_vaccinated, na.rm = TRUE),
             cumulative_at_least_one_dose = sum(cumulative_at_least_one_dose, na.rm = TRUE)) %>%
   ungroup()
+
+vax_rate_by_month <- vax %>%
+  group_by(year_month) %>%
+  summarise(total_partial_vaccinated = sum(total_partial_vaccinated, na.rm = TRUE),
+            cumulative_at_least_one_dose = sum(cumulative_at_least_one_dose, na.rm = TRUE)) %>%
+  ungroup() %>%
+  mutate(county = "California") %>%
+  left_join(vax_pop_ca, by = "county")  %>%
+  mutate(rate_total_partial = (total_partial_vaccinated/pop)*1000,
+         rate_cum_one_dose = (cumulative_at_least_one_dose/pop)*1000) 
 
 ```
 
@@ -363,17 +409,17 @@ vax_counts_by_month <- vax %>%
 
 -   Data dictionary based on clean data set
 
-|                       |            |                                                                               |                                                                                                                                                                                                                                                                                                                      |       |
-|--------|--------|--------|---------------------------------------|--------|
-| **Column Name**       | Format     | Definition                                                                    | Values                                                                                                                                                                                                                                                                                                               | Notes |
-| county                | Plain text | County of residence                                                           | California Counties                                                                                                                                                                                                                                                                                                  |       |
-| demogr aphic_value    | Plain text | Age, Race /Ethnicity, Gender                                                  | 0-17, 18-49, 50-64, 65+; MALE, FEMALE; "White, Non -Hispanic", "Black, Non -Hispanic", "American Indian or Alaska Native, Non -Hispanic", "Asian, Non -Hispanic", "Native Hawaiian or Pacific Islander, Non -Hispanic", " Multiracial (two or more of above races), Non -Hispanic", "Hispanic (any race)", "Unknown) |       |
-| d t_diagnosis         | Date       | Date of Diagnosis                                                             | 2022-09-26: 2023-06-10                                                                                                                                                                                                                                                                                               |       |
-| new \_infections      | Numeric    | Number of newly diagnosed individuals                                         | 0-95742                                                                                                                                                                                                                                                                                                              |       |
-| new_severe            | Numeric    | Newly identified individuals having severe disease requiring hosp italization | 0-2488                                                                                                                                                                                                                                                                                                               |       |
-| demograph ic_category | Plain text | Age, Race /Ethnicity, Gender                                                  | Race /Ethnicity, Age Group, Gender                                                                                                                                                                                                                                                                                   |       |
-| pop                   | Numeric    | Total population of demographic categories in county                          | 0-5153156                                                                                                                                                                                                                                                                                                            |       |
-| year_month            | Plain text | Year and month of diagnosis                                                   | 2022 -09:2023-06                                                                                                                                                                                                                                                                                                     |       |
+|                       |            |                                                                               |                                                                                                                                                                                                                                                                                                                      |
+|-------------|-------------|-------------|-----------------------|
+| **Column Name**       | Format     | Definition                                                                    | Values                                                                                                                                                                                                                                                                                                               |
+| county                | Plain text | County of residence                                                           | California Counties                                                                                                                                                                                                                                                                                                  |
+| demogr aphic_value    | Plain text | Age, Race /Ethnicity, Gender                                                  | 0-17, 18-49, 50-64, 65+; MALE, FEMALE; "White, Non -Hispanic", "Black, Non -Hispanic", "American Indian or Alaska Native, Non -Hispanic", "Asian, Non -Hispanic", "Native Hawaiian or Pacific Islander, Non -Hispanic", " Multiracial (two or more of above races), Non -Hispanic", "Hispanic (any race)", "Unknown) |
+| d t_diagnosis         | Date       | Date of Diagnosis                                                             | 2022-09-26: 2023-06-10                                                                                                                                                                                                                                                                                               |
+| new \_infections      | Numeric    | Number of newly diagnosed individuals                                         | 0-95742                                                                                                                                                                                                                                                                                                              |
+| new_severe            | Numeric    | Newly identified individuals having severe disease requiring hosp italization | 0-2488                                                                                                                                                                                                                                                                                                               |
+| demograph ic_category | Plain text | Age, Race /Ethnicity, Gender                                                  | Race /Ethnicity, Age Group, Gender                                                                                                                                                                                                                                                                                   |
+| pop                   | Numeric    | Total population of demographic categories in county                          | 0-5153156                                                                                                                                                                                                                                                                                                            |
+| year_month            | Plain text | Year and month of diagnosis                                                   | 2022 -09:2023-06                                                                                                                                                                                                                                                                                                     |
 
 ### Descriptive Statistics
 
@@ -382,26 +428,68 @@ vax_counts_by_month <- vax %>%
 
 ```{r}
 
-#Descriptive stats for count of new infections by race
-summary(flu_rate_by_race$rate_severe)
-#Descriptive stats for count of new severe infections by race
-summary(flu_rate_by_race$rate_infections)
+flu_demo_stats <- flu_rate_by_demo %>%
+  group_by(demographic_category) %>%
+  summarise(min_rate_infections = round(min(rate_infections), digits = 2),
+            max_rate_infections = round(max(rate_infections), digits = 2),
+            mean_rate_infections = round(mean(rate_infections), digits = 2),
+            sd_rate_infections = round(sd(rate_infections), digits = 2),
+            min_rate_severe = round(min(rate_severe), digits = 2),
+            max_rate_severe = round(max(rate_severe), digits = 2),
+            mean_rate_severe = round(mean(rate_severe), digits = 2),
+            sd_rate_severe = round(sd(rate_severe), digits = 2)) %>%
+  ungroup()
 
-#Descriptive stats for count of new infections by age group
-summary(flu_rate_by_age$rate_severe)
-#Descriptive stats for count of new severe infections by age group
-summary(flu_rate_by_age$rate_infections)
+# flu_stats_long <- pivot_longer(
+#   data = flu_demo_stats,
+#   cols = c("min_rate_infections","max_rate_infections","mean_rate_infections","sd_rate_infections",
+#            "min_rate_severe","max_rate_severe","mean_rate_severe","sd_rate_severe"),
+#   names_to = "statistic",
+#   values_to = "value"
+# )
+# 
+# flu_stats_wide <- pivot_wider(
+#   data = flu_stats_long,
+#   names_from = demographic_category,
+#   values_from = value
+# )
 
-#Descriptive stats for count of new infections by month
-summary(flu_counts_by_month$new_infections)
-#Descriptive stats for count of new severe infections by month
-summary(flu_counts_by_month$new_severe)
+kable(flu_demo_stats,longtable=T,booktabs=T, col.names=c("Demographic Category","Min","Max","Mean","SD","Min","Max","Mean","SD"), caption="Descriptive Statistics for Flu Rates (New Infections and New Severe Infections) by Selected Demographic Category, California") %>%
+  kable_styling(full_width=F) %>%
+  kable_styling(position="left") %>%
+  kable_styling(font_size=10) %>%
+  column_spec(1, bold=TRUE) %>%
+  add_header_above(c(" "=1,"New Infections"=4,"New Severe Infections"=4))
 
-summary(vax_rate_by_demo$rate_total_partial)
-summary(vax_rate_by_demo$rate_cum_one_dose)
+vax_demo_stats <- vax_rate_by_demo %>%
+  group_by(demographic_category) %>%
+  summarise(min_rate_total_partial = round(min(rate_total_partial), digits = 2),
+            max_rate_total_partial = round(max(rate_total_partial), digits = 2),
+            mean_rate_total_partial = round(mean(rate_total_partial), digits = 2),
+            sd_rate_total_partial = round(sd(rate_total_partial), digits = 2),
+            min_rate_cum_one_dose = round(min(rate_cum_one_dose), digits = 2),
+            max_rate_cum_one_dose = round(max(rate_cum_one_dose), digits = 2),
+            mean_rate_cum_one_dose = round(mean(rate_cum_one_dose), digits = 2),
+            sd_rate_cum_one_dose = round(sd(rate_cum_one_dose), digits = 2)) %>%
+  ungroup()
 
-summary(vax_counts_by_month$total_partial_vaccinated)
-summary(vax_counts_by_month$cumulative_at_least_one_dose)
+kable(vax_demo_stats,longtable=T,booktabs=T, col.names=c("Demographic Category","Min","Max","Mean","SD","Min","Max","Mean","SD"), caption="Descriptive Statistics for Vaccination Rates (Total Partially Vaccinated and Cumulative At Least One Dose) by Selected Demographic Category, California") %>%
+  kable_styling(full_width=F) %>%
+  kable_styling(position="left") %>%
+  kable_styling(font_size=10) %>%
+  column_spec(1, bold=TRUE) %>%
+  add_header_above(c(" "=1,"Total Partially Vaccinated"=4,"Cumulative At Least One Dose"=4))
+
+
+#Descriptive stats for rate of new infections by month
+summary(flu_rate_by_month$new_infections)
+#Descriptive stats for rate of new severe infections by month
+summary(flu_rate_by_month$new_severe)
+
+#Descriptive stats for count of totally partially vaccinated by month
+summary(vax_count_by_month$total_partial_vaccinated)
+#Descriptive stats for count of cumulative at least one dose by month
+summary(vax_count_by_month$cumulative_at_least_one_dose)
 ```
 
 -   Html output that is professionally prepared for presentation
