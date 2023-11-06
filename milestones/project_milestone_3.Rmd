@@ -7,22 +7,7 @@ editor_options:
     wrap: 72
 ---
 
-|                      |            |                                                                              |                                                                                                                                                                                                                                                                                                               |       |
-|------------------|------------|----------------|----------------------|-----|
-| **Column Name**      | Format     | Definition                                                                   | Values                                                                                                                                                                                                                                                                                                        | Notes |
-| county               | Plain text | County of residence                                                          | California Counties                                                                                                                                                                                                                                                                                           |       |
-| demographic_value    | Plain text | Age, Race/Ethnicity, Gender                                                  | 0-17, 18-49, 50-64, 65+; MALE, FEMALE; "White, Non-Hispanic", "Black, Non-Hispanic", "American Indian or Alaska Native, Non-Hispanic", "Asian, Non-Hispanic", "Native Hawaiian or Pacific Islander, Non-Hispanic", "Multiracial (two or more of above races), Non-Hispanic", "Hispanic (any race)", "Unknown) |       |
-| dt_diagnosis         | Date       | Date of Diagnosis                                                            | 2022-09-26: 2023-06-10                                                                                                                                                                                                                                                                                        |       |
-| new_infections       | Numeric    | Number of newly diagnosed individuals                                        | 0-95742                                                                                                                                                                                                                                                                                                       |       |
-| new_severe           | Numeric    | Newly identified individuals having severe disease requiring hospitalization | 0-2488                                                                                                                                                                                                                                                                                                        |       |
-| demographic_category | Plain text | Age, Race/Ethnicity, Gender                                                  | Race/Ethnicity, Age Group, Gender                                                                                                                                                                                                                                                                             |       |
-| pop                  | Numeric    | Total population of demographic categories in county                         | 0-5153156                                                                                                                                                                                                                                                                                                     |       |
-| year_month           | Plain text | Year and month of diagnosis                                                  | 2022-09:2023-06                                                                                                                                                                                                                                                                                               |       |
-|                      |            |                                                                              |                                                                                                                                                                                                                                                                                                               |       |
-
 # Milestone 3 Response
-
-## Code Below
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
@@ -48,14 +33,14 @@ source_flu_CA <- read.csv("~/PHW251_group_project/data/sim_flu_CA.csv")
 #unique(source_flu_LA$RACE_ETH)
 ```
 
-## Stack flu data sets
+## Clean and stack flu data sets
 
 -   Clean CA flu data
 
     -   rewrite values in the sex column to lower case
 
     -   rewrite race/ethnicity categories according to the
-        categorization as definied by California Department of Finance
+        categorization as defined by California Department of Finance
 
     -   change data types for two columns
 
@@ -78,6 +63,8 @@ flu_CA <- source_flu_CA %>%
 ```
 
 -   Clean LA flu data to match CA flu data
+    -   renamed column names to match CA flu data
+    -   created new columns to match CA flu data
 
 ```{r}
 
@@ -129,11 +116,10 @@ flu_LA <- source_flu_LA %>%
 
 flu_CA_LA <- rbind(flu_CA, flu_LA)
 
-colSums(is.na(flu_CA_LA))
+#colSums(is.na(flu_CA_LA))
 ```
 
--   Restructure flu data so one demographic variable per row. Done once
-    for new_infections and again for pop
+-   Restructure flu data so one demographic variable per row
 
 ```{r}
 flu_age <- flu_CA_LA %>%
@@ -203,13 +189,13 @@ flu_cases <- rbind(flu_age, flu_sex, flu_race)
    rename(demographic_value = race_ethnicity) %>%
    mutate(demographic_category = "Race/Ethnicity")
 
+ flu_pop <- rbind(pop_flu_age, pop_flu_sex, pop_flu_race)
 ```
 
--   Join both new_infection and pop
+-   Join both new_infection and pop to create final flu data table (flu)
+    -   Create new variable to capture month of diagnosis
 
 ```{r}
-
-flu_pop <- rbind(pop_flu_age, pop_flu_sex, pop_flu_race)
 
 flu <- flu_cases %>%
    full_join(flu_pop, by = c("county","demographic_value","demographic_category")) %>%
@@ -217,13 +203,12 @@ flu <- flu_cases %>%
 
 ```
 
-## Rework COVID data
+## Clean COVID data
 
 -   Recode age categories
-    -   change data types for several columns
-
-    -   rename coulmns to match flu data
--   Find overlapping period between two datasets - from 2022-09-24 to
+-   Change data types for several columns
+-   Rename columns to match flu data
+-   Find overlapping period between two data sets - from 2022-09-24 to
     2023-06-10
 
 ```{r}
@@ -280,11 +265,11 @@ max(flu$dt_diagnosis)
 -   New variables are created based on existing columns: new_infections
     & new_severe
 
--   Create datasets that we want to focus on later
+-   Create data sets that we want to focus on later
 
     -   flu_rate_by_demo - to see flu rate for certain demographic
 
-    -   flu_counts_by_month - to track flue rates over time
+    -   flu_counts_by_month - to track flu rates over time
 
 ```{r}
 
@@ -318,7 +303,7 @@ flu_counts_by_month <- flu %>%
 
 ```
 
-## Sum COVID vax
+## Aggregate COVID vax data
 
 -   Create new variables needed for analysis
 
@@ -331,7 +316,7 @@ flu_counts_by_month <- flu %>%
 -   New variables are created based on existing columns:
     total_partial_vaccinated & cumulative_at_least_one_dose
 
--   Create datasets that we want to focus on later
+-   Create data sets that we want to focus on later
 
     -   vax_rate_by_demo - to see vaccination rates for certain
         demographic
@@ -366,7 +351,26 @@ vax_counts_by_month <- vax %>%
 
 ```
 
--   Data dictionary based on clean dataset
+## Data Dictionary for Flu Data
+
+-   Data dictionary based on clean data set
+
+|                       |            |                                                                               |                                                                                                                                                                                                                                                                                                                      |       |
+|-----------------------|------------|-------------------------------------------------------------------------------|----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|-------|
+| **Column Name**       | Format     | Definition                                                                    | Values                                                                                                                                                                                                                                                                                                               | Notes |
+| county                | Plain text | County of residence                                                           | California Counties                                                                                                                                                                                                                                                                                                  |       |
+| demogr aphic_value    | Plain text | Age, Race /Ethnicity, Gender                                                  | 0-17, 18-49, 50-64, 65+; MALE, FEMALE; "White, Non -Hispanic", "Black, Non -Hispanic", "American Indian or Alaska Native, Non -Hispanic", "Asian, Non -Hispanic", "Native Hawaiian or Pacific Islander, Non -Hispanic", " Multiracial (two or more of above races), Non -Hispanic", "Hispanic (any race)", "Unknown) |       |
+| d t_diagnosis         | Date       | Date of Diagnosis                                                             | 2022-09-26: 2023-06-10                                                                                                                                                                                                                                                                                               |       |
+| new \_infections      | Numeric    | Number of newly diagnosed individuals                                         | 0-95742                                                                                                                                                                                                                                                                                                              |       |
+| new_severe            | Numeric    | Newly identified individuals having severe disease requiring hosp italization | 0-2488                                                                                                                                                                                                                                                                                                               |       |
+| demograph ic_category | Plain text | Age, Race /Ethnicity, Gender                                                  | Race /Ethnicity, Age Group, Gender                                                                                                                                                                                                                                                                                   |       |
+| pop                   | Numeric    | Total population of demographic categories in county                          | 0-5153156                                                                                                                                                                                                                                                                                                            |       |
+| year_month            | Plain text | Year and month of diagnosis                                                   | 2022 -09:2023-06                                                                                                                                                                                                                                                                                                     |       |
+
+## Descriptive Statistics
+
+-   Data type Description One or more tables with descriptive statistics
+    for 4 data elements
 
 ```{r}
 
@@ -382,9 +386,6 @@ summary(vax_rate_by_demo$rate_cum_one_dose)
 summary(vax_counts_by_month$total_partial_vaccinated)
 summary(vax_counts_by_month$cumulative_at_least_one_dose)
 ```
-
--   Data type Description One or more tables with descriptive statistics
-    for 4 data elements
 
 -   Html output that is professionally prepared for presentation
 
