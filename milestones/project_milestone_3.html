@@ -586,27 +586,12 @@ display: none;
 <ul>
 <li>Set packages and import data</li>
 </ul>
-<pre class="r"><code>library(tidyverse)</code></pre>
-<pre><code>## ── Attaching core tidyverse packages ──────────────────────── tidyverse 2.0.0 ──
-## ✔ dplyr     1.1.3     ✔ readr     2.1.4
-## ✔ forcats   1.0.0     ✔ stringr   1.5.0
-## ✔ ggplot2   3.4.4     ✔ tibble    3.2.1
-## ✔ lubridate 1.9.3     ✔ tidyr     1.3.0
-## ✔ purrr     1.0.2     
-## ── Conflicts ────────────────────────────────────────── tidyverse_conflicts() ──
-## ✖ dplyr::filter() masks stats::filter()
-## ✖ dplyr::lag()    masks stats::lag()
-## ℹ Use the conflicted package (&lt;http://conflicted.r-lib.org/&gt;) to force all conflicts to become errors</code></pre>
-<pre class="r"><code>library(dplyr)
+<pre class="r"><code>library(tidyverse)
+library(dplyr)
 library(knitr)
-library(kableExtra)</code></pre>
-<pre><code>## 
-## Attaching package: &#39;kableExtra&#39;
-## 
-## The following object is masked from &#39;package:dplyr&#39;:
-## 
-##     group_rows</code></pre>
-<pre class="r"><code>source_vax_CA &lt;- read.csv(&quot;~/PHW251_group_project/data/ca_vax_rates_quarter.csv&quot;)
+library(kableExtra)
+
+source_vax_CA &lt;- read.csv(&quot;~/PHW251_group_project/data/ca_vax_rates_quarter.csv&quot;)
 source_flu_LA &lt;- read.csv(&quot;~/PHW251_group_project/data/sim_flu_LACounty_pop.csv&quot;)
 source_flu_CA &lt;- read.csv(&quot;~/PHW251_group_project/data/sim_flu_CA.csv&quot;)
 
@@ -703,28 +688,25 @@ as defined by California Department of Finance</p></li>
              new_severe = sum(new_severe)) %&gt;%
    ungroup()  %&gt;%
    mutate(demographic_category = &quot;Age Group&quot;) %&gt;%
-   rename(demographic_value = age_cat)</code></pre>
-<pre><code>## `summarise()` has grouped output by &#39;county&#39;, &#39;age_cat&#39;. You can override using
-## the `.groups` argument.</code></pre>
-<pre class="r"><code>flu_sex &lt;- flu_CA_LA %&gt;%
+   rename(demographic_value = age_cat)
+
+flu_sex &lt;- flu_CA_LA %&gt;%
    group_by(county,sex,dt_diagnosis) %&gt;%
    summarise(new_infections = sum(new_infections),
              new_severe = sum(new_severe)) %&gt;%
    ungroup() %&gt;%
    mutate(demographic_category = &quot;Gender&quot;) %&gt;%
-   rename(demographic_value = sex)</code></pre>
-<pre><code>## `summarise()` has grouped output by &#39;county&#39;, &#39;sex&#39;. You can override using the
-## `.groups` argument.</code></pre>
-<pre class="r"><code> flu_race &lt;- flu_CA_LA %&gt;%
+   rename(demographic_value = sex)
+
+ flu_race &lt;- flu_CA_LA %&gt;%
    group_by(county,race_ethnicity,dt_diagnosis) %&gt;%
    summarise(new_infections = sum(new_infections),
              new_severe = sum(new_severe)) %&gt;%
    ungroup() %&gt;%
    mutate(demographic_category = &quot;Race/Ethnicity&quot;) %&gt;%
-   rename(demographic_value = race_ethnicity)</code></pre>
-<pre><code>## `summarise()` has grouped output by &#39;county&#39;, &#39;race_ethnicity&#39;. You can
-## override using the `.groups` argument.</code></pre>
-<pre class="r"><code>flu_cases &lt;- rbind(flu_age, flu_sex, flu_race)
+   rename(demographic_value = race_ethnicity)
+
+flu_cases &lt;- rbind(flu_age, flu_sex, flu_race)
 
 # var &lt;- c(&quot;age_cat&quot;, &quot;sex&quot;, &quot;race_ethnicity&quot;)
 # value &lt;- c(&quot;Age Group&quot;, &quot;Gender&quot;, &quot;Race/Ethnicity&quot;)
@@ -747,28 +729,25 @@ column</li>
    summarise(pop = sum(pop)) %&gt;%
    ungroup() %&gt;%
    rename(demographic_value = age_cat) %&gt;%
-   mutate(demographic_category = &quot;Age Group&quot;)</code></pre>
-<pre><code>## `summarise()` has grouped output by &#39;county&#39;. You can override using the
-## `.groups` argument.</code></pre>
-<pre class="r"><code> pop_flu_sex &lt;- flu_CA_LA %&gt;%
+   mutate(demographic_category = &quot;Age Group&quot;)
+
+ pop_flu_sex &lt;- flu_CA_LA %&gt;%
    distinct(county,age_cat,sex,race_ethnicity,pop) %&gt;%
    group_by(county,sex) %&gt;%
    summarise(pop = sum(pop)) %&gt;%
    ungroup() %&gt;%
    rename(demographic_value = sex) %&gt;%
-   mutate(demographic_category = &quot;Gender&quot;)</code></pre>
-<pre><code>## `summarise()` has grouped output by &#39;county&#39;. You can override using the
-## `.groups` argument.</code></pre>
-<pre class="r"><code> pop_flu_race &lt;- flu_CA_LA %&gt;%
+   mutate(demographic_category = &quot;Gender&quot;)
+
+ pop_flu_race &lt;- flu_CA_LA %&gt;%
    distinct(county,age_cat,sex,race_ethnicity,pop) %&gt;%
    group_by(county,race_ethnicity) %&gt;%
    summarise(pop = sum(pop)) %&gt;%
    ungroup() %&gt;%
    rename(demographic_value = race_ethnicity) %&gt;%
-   mutate(demographic_category = &quot;Race/Ethnicity&quot;)</code></pre>
-<pre><code>## `summarise()` has grouped output by &#39;county&#39;. You can override using the
-## `.groups` argument.</code></pre>
-<pre class="r"><code> flu_pop &lt;- rbind(pop_flu_age, pop_flu_sex, pop_flu_race)</code></pre>
+   mutate(demographic_category = &quot;Race/Ethnicity&quot;)
+
+ flu_pop &lt;- rbind(pop_flu_age, pop_flu_sex, pop_flu_race)</code></pre>
 <ul>
 <li>Join both new_infection and pop to create final flu data table (flu)
 <ul>
@@ -817,10 +796,9 @@ column</li>
   ungroup() %&gt;%
   filter(dt_admin &gt;= &quot;2022-09-24&quot; &amp; dt_admin &lt;= &quot;2023-06-10&quot;,
          county != &quot;Statewide&quot;) %&gt;%
-  mutate(year_month = format(as.Date(dt_admin), &quot;%Y-%m&quot;))</code></pre>
-<pre><code>## `summarise()` has grouped output by &#39;county&#39;, &#39;demographic_category&#39;,
-## &#39;demographic_value&#39;. You can override using the `.groups` argument.</code></pre>
-<pre class="r"><code>#min(vax$dt_admin)
+  mutate(year_month = format(as.Date(dt_admin), &quot;%Y-%m&quot;))
+
+#min(vax$dt_admin)
 #max(vax$dt_admin)
 
 #min(flu$dt_diagnosis)
@@ -851,16 +829,14 @@ demographic</p></li>
   group_by(demographic_category,demographic_value) %&gt;%
   summarise(new_infections = sum(new_infections),
             new_severe = sum(new_severe)) %&gt;%
-  ungroup()</code></pre>
-<pre><code>## `summarise()` has grouped output by &#39;demographic_category&#39;. You can override
-## using the `.groups` argument.</code></pre>
-<pre class="r"><code>flu_pop_demo_state &lt;- flu_pop %&gt;%
+  ungroup()
+
+flu_pop_demo_state &lt;- flu_pop %&gt;%
   group_by(demographic_category,demographic_value) %&gt;%
   summarise(pop = sum(pop)) %&gt;%
-  ungroup()</code></pre>
-<pre><code>## `summarise()` has grouped output by &#39;demographic_category&#39;. You can override
-## using the `.groups` argument.</code></pre>
-<pre class="r"><code>flu_pop_county &lt;- flu_pop %&gt;%
+  ungroup()
+
+flu_pop_county &lt;- flu_pop %&gt;%
   filter(demographic_category == &quot;Age Group&quot;) %&gt;%
   group_by(county) %&gt;%
   summarise(pop = sum(pop)) %&gt;%
@@ -918,20 +894,18 @@ demographic</p></li>
   group_by(demographic_category,demographic_value) %&gt;%
   summarise(total_partial_vaccinated = sum(total_partial_vaccinated, na.rm = TRUE),
             cumulative_at_least_one_dose = sum(cumulative_at_least_one_dose, na.rm = TRUE)) %&gt;%
-  ungroup()</code></pre>
-<pre><code>## `summarise()` has grouped output by &#39;demographic_category&#39;. You can override
-## using the `.groups` argument.</code></pre>
-<pre class="r"><code>vax_pop &lt;- vax %&gt;%
+  ungroup()
+
+vax_pop &lt;- vax %&gt;%
   distinct(county,demographic_category,demographic_value, pop)%&gt;% 
   filter(demographic_value != &quot;Unknown/undifferentiated&quot;, demographic_value != &quot;Other Race&quot;, demographic_value != &quot;Unknown&quot;)
 
 vax_pop_demo_state &lt;- vax_pop %&gt;%
   group_by(demographic_category,demographic_value) %&gt;%
   summarise(pop = sum(pop, na.rm = TRUE)) %&gt;%
-  ungroup()  </code></pre>
-<pre><code>## `summarise()` has grouped output by &#39;demographic_category&#39;. You can override
-## using the `.groups` argument.</code></pre>
-<pre class="r"><code>vax_pop_county &lt;- vax_pop %&gt;%
+  ungroup()  
+
+vax_pop_county &lt;- vax_pop %&gt;%
   filter(demographic_category == &quot;Age Group&quot;) %&gt;%
   group_by(county) %&gt;%
   summarise(pop = sum(pop))
@@ -980,10 +954,10 @@ vax_rate_by_month &lt;- vax %&gt;%
 </ul>
 <table>
 <colgroup>
-<col width="20%" />
-<col width="20%" />
-<col width="20%" />
-<col width="37%" />
+<col width="22%" />
+<col width="22%" />
+<col width="22%" />
+<col width="33%" />
 </colgroup>
 <tbody>
 <tr class="odd">
@@ -1085,7 +1059,9 @@ kable(flu_demo_stats,longtable=T,booktabs=T, col.names=c(&quot;Demographic Categ
   kable_styling(position=&quot;left&quot;) %&gt;%
   kable_styling(font_size=10) %&gt;%
   column_spec(1, bold=TRUE) %&gt;%
-  add_header_above(c(&quot; &quot;=1,&quot;New Infections&quot;=4,&quot;New Severe Infections&quot;=4))</code></pre>
+  add_header_above(c(&quot; &quot;=1,&quot;New Infections&quot;=4,&quot;New Severe Infections&quot;=4)) %&gt;%
+  add_footnote(&quot;Rates are per 1,000 population&quot;, notation = &quot;none&quot;) %&gt;%
+  add_footnote(&quot;Based on diagnosis date from 9/24/2022 - 6/10/2023&quot;, notation = &quot;none&quot;)</code></pre>
 <table class="table table table" style="width: auto !important; margin-left: auto; margin-right: auto;  font-size: 10px; margin-left: auto; margin-right: auto;">
 <caption style="font-size: initial !important;">
 Descriptive Statistics for Flu Rates (New Infections and New Severe
@@ -1225,6 +1201,20 @@ Race/Ethnicity
 </td>
 </tr>
 </tbody>
+<tfoot>
+<tr>
+<td style="padding: 0; border:0;" colspan="100%">
+<sup></sup> Based on diagnosis date from 9/24/2022 - 6/10/2023
+</td>
+</tr>
+</tfoot>
+<tfoot>
+<tr>
+<td style="padding: 0; border:0;" colspan="100%">
+<sup></sup> Rates are per 1,000 population
+</td>
+</tr>
+</tfoot>
 </table>
 <pre class="r"><code>vax_demo_stats &lt;- vax_rate_by_demo %&gt;%
   group_by(demographic_category) %&gt;%
@@ -1243,7 +1233,9 @@ kable(vax_demo_stats,longtable=T,booktabs=T, col.names=c(&quot;Demographic Categ
   kable_styling(position=&quot;left&quot;) %&gt;%
   kable_styling(font_size=10) %&gt;%
   column_spec(1, bold=TRUE) %&gt;%
-  add_header_above(c(&quot; &quot;=1,&quot;Total Partially Vaccinated&quot;=4,&quot;Cumulative At Least One Dose&quot;=4))</code></pre>
+  add_header_above(c(&quot; &quot;=1,&quot;Total Partially Vaccinated&quot;=4,&quot;Cumulative At Least One Dose&quot;=4)) %&gt;%
+  add_footnote(&quot;Rates are per 1,000 population&quot;, notation = &quot;none&quot;) %&gt;%
+  add_footnote(&quot;Based on administered date from 9/24/2022 - 6/10/2023&quot;, notation = &quot;none&quot;)</code></pre>
 <table class="table table table" style="width: auto !important; margin-left: auto; margin-right: auto;  font-size: 10px; margin-left: auto; margin-right: auto;">
 <caption style="font-size: initial !important;">
 Descriptive Statistics for Vaccination Rates (Total Partially Vaccinated
@@ -1384,6 +1376,20 @@ Race/Ethnicity
 </td>
 </tr>
 </tbody>
+<tfoot>
+<tr>
+<td style="padding: 0; border:0;" colspan="100%">
+<sup></sup> Based on administered date from 9/24/2022 - 6/10/2023
+</td>
+</tr>
+</tfoot>
+<tfoot>
+<tr>
+<td style="padding: 0; border:0;" colspan="100%">
+<sup></sup> Rates are per 1,000 population
+</td>
+</tr>
+</tfoot>
 </table>
 <pre class="r"><code>#Descriptive stats for rate of new infections by month
 summary(flu_rate_by_month$new_infections)</code></pre>

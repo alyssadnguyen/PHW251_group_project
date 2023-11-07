@@ -1,6 +1,9 @@
 ---
 title: "Project Milestone 3"
-output: html_document
+output: 
+  html_document:
+    warning: FALSE
+    message: FALSE
 date: "November 6, 2023"
 editor_options: 
   markdown: 
@@ -17,7 +20,7 @@ knitr::opts_chunk$set(echo = TRUE)
 
 -   Set packages and import data
 
-```{r}
+```{r, message=FALSE}
 library(tidyverse)
 library(dplyr)
 library(knitr)
@@ -123,7 +126,7 @@ flu_CA_LA <- rbind(flu_CA, flu_LA)
 
 -   Restructure flu data so one demographic variable per row
 
-```{r}
+```{r, message=FALSE}
 flu_age <- flu_CA_LA %>%
    group_by(county,age_cat,dt_diagnosis) %>%
    summarise(new_infections = sum(new_infections),
@@ -166,7 +169,7 @@ flu_cases <- rbind(flu_age, flu_sex, flu_race)
 -   Restructure flu pop column so only one demographic variable per
     column
 
-```{r}
+```{r, message=FALSE}
  pop_flu_age <- flu_CA_LA %>%
    distinct(county,age_cat,sex,race_ethnicity,pop) %>%
    group_by(county,age_cat) %>%
@@ -214,7 +217,7 @@ flu <- flu_cases %>%
     2023-06-10
 -   Remove "Statewide" rows to be consistent with flu data
 
-```{r}
+```{r, message=FALSE}
 
 vax <- source_vax_CA %>%
   rename_with(~ tolower(gsub(".","_",.x,fixed=TRUE))) %>%
@@ -275,7 +278,7 @@ vax <- source_vax_CA %>%
 
     -   flu_rate_by_month - to track flu rates over time
 
-```{r}
+```{r, message=FALSE}
 
 flu_counts_by_demo <- flu %>%
   group_by(demographic_category,demographic_value) %>%
@@ -346,7 +349,7 @@ flu_rate_by_month <- flu %>%
 
     -   vax_rate_by_month - to track vaccination rates over time
 
-```{r}
+```{r, message=FALSE}
 vax_count_by_demo <- vax %>%
   group_by(demographic_category,demographic_value) %>%
   summarise(total_partial_vaccinated = sum(total_partial_vaccinated, na.rm = TRUE),
@@ -410,7 +413,7 @@ vax_rate_by_month <- vax %>%
 -   Data dictionary based on clean data set
 
 |                       |            |                                                                               |                                                                                                                                                                                                                                                                                                                      |
-|-------------|-------------|-------------|-----------------------|
+|----------------|----------------|----------------|------------------------|
 | **Column Name**       | Format     | Definition                                                                    | Values                                                                                                                                                                                                                                                                                                               |
 | county                | Plain text | County of residence                                                           | California Counties                                                                                                                                                                                                                                                                                                  |
 | demogr aphic_value    | Plain text | Age, Race /Ethnicity, Gender                                                  | 0-17, 18-49, 50-64, 65+; MALE, FEMALE; "White, Non -Hispanic", "Black, Non -Hispanic", "American Indian or Alaska Native, Non -Hispanic", "Asian, Non -Hispanic", "Native Hawaiian or Pacific Islander, Non -Hispanic", " Multiracial (two or more of above races), Non -Hispanic", "Hispanic (any race)", "Unknown) |
@@ -426,7 +429,7 @@ vax_rate_by_month <- vax %>%
 -   Data type Description One or more tables with descriptive statistics
     for 4 data elements
 
-```{r}
+```{r, message=FALSE}
 
 flu_demo_stats <- flu_rate_by_demo %>%
   group_by(demographic_category) %>%
@@ -459,7 +462,9 @@ kable(flu_demo_stats,longtable=T,booktabs=T, col.names=c("Demographic Category",
   kable_styling(position="left") %>%
   kable_styling(font_size=10) %>%
   column_spec(1, bold=TRUE) %>%
-  add_header_above(c(" "=1,"New Infections"=4,"New Severe Infections"=4))
+  add_header_above(c(" "=1,"New Infections"=4,"New Severe Infections"=4)) %>%
+  add_footnote("Rates are per 1,000 population", notation = "none") %>%
+  add_footnote("Based on diagnosis date from 9/24/2022 - 6/10/2023", notation = "none")
 
 vax_demo_stats <- vax_rate_by_demo %>%
   group_by(demographic_category) %>%
@@ -478,7 +483,9 @@ kable(vax_demo_stats,longtable=T,booktabs=T, col.names=c("Demographic Category",
   kable_styling(position="left") %>%
   kable_styling(font_size=10) %>%
   column_spec(1, bold=TRUE) %>%
-  add_header_above(c(" "=1,"Total Partially Vaccinated"=4,"Cumulative At Least One Dose"=4))
+  add_header_above(c(" "=1,"Total Partially Vaccinated"=4,"Cumulative At Least One Dose"=4)) %>%
+  add_footnote("Rates are per 1,000 population", notation = "none") %>%
+  add_footnote("Based on administered date from 9/24/2022 - 6/10/2023", notation = "none")
 
 
 #Descriptive stats for rate of new infections by month
