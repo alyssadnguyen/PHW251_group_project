@@ -120,7 +120,8 @@ flu_LA <- source_flu_LA %>%
 
 ```{r}
 
-flu_CA_LA <- rbind(flu_CA, flu_LA)
+flu_CA_LA <- rbind(flu_CA, flu_LA) %>%
+  mutate(quarter = floor_date(dt_diagnosis, "quarter"))
 
 #colSums(is.na(flu_CA_LA))
 ```
@@ -129,7 +130,7 @@ flu_CA_LA <- rbind(flu_CA, flu_LA)
 
 ```{r, message=FALSE}
 flu_age <- flu_CA_LA %>%
-   group_by(county,age_cat,dt_diagnosis) %>%
+   group_by(county,age_cat,quarter) %>%
    summarise(new_infections = sum(new_infections),
              new_severe = sum(new_severe)) %>%
    ungroup()  %>%
@@ -137,7 +138,7 @@ flu_age <- flu_CA_LA %>%
    rename(demographic_value = age_cat)
 
 flu_sex <- flu_CA_LA %>%
-   group_by(county,sex,dt_diagnosis) %>%
+   group_by(county,sex,quarter) %>%
    summarise(new_infections = sum(new_infections),
              new_severe = sum(new_severe)) %>%
    ungroup() %>%
@@ -145,7 +146,7 @@ flu_sex <- flu_CA_LA %>%
    rename(demographic_value = sex)
 
  flu_race <- flu_CA_LA %>%
-   group_by(county,race_ethnicity,dt_diagnosis) %>%
+   group_by(county,race_ethnicity,quarter) %>%
    summarise(new_infections = sum(new_infections),
              new_severe = sum(new_severe)) %>%
    ungroup() %>%
@@ -204,8 +205,10 @@ flu_cases <- rbind(flu_age, flu_sex, flu_race)
 ```{r}
 
 flu <- flu_cases %>%
-   full_join(flu_pop, by = c("county","demographic_value","demographic_category")) %>%
-   mutate(year_month = format(as.Date(dt_diagnosis), "%Y-%m"))
+   full_join(flu_pop, by = c("county","demographic_value","demographic_category")) 
+  # %>%
+  #  mutate(year_month = format(as.Date(dt_diagnosis), "%Y-%m"),
+  #         quarter = floor_date(dt_diagnosis, "quarter"))
 
 ```
 
@@ -239,16 +242,17 @@ vax <- source_vax_CA %>%
                               #  demographic_value == "Other Race" ~ "Unknown",
                               #  demographic_value == "Unknown/undifferentiated" ~ "Unknown gender"
           TRUE ~ demographic_value)) %>%
-  group_by(county,demographic_category,demographic_value,dt_admin) %>%
+  group_by(county,demographic_category,demographic_value,quarter) %>%
   summarise(pop=sum(pop),
           total_partial_vaccinated = sum(total_partial_vaccinated),
           cumulative_fully_vaccinated = sum(cumulative_fully_vaccinated),
           cumulative_at_least_one_dose = sum(cumulative_at_least_one_dose),
           cumulative_up_to_date_vax = sum(cumulative_up_to_date_vax)) %>%
   ungroup() %>%
-  filter(dt_admin >= "2022-09-24" & dt_admin <= "2023-06-10",
-         county != "Statewide") %>%
-  mutate(year_month = format(as.Date(dt_admin), "%Y-%m"))
+  filter(quarter >= "2022-07-01" & quarter <= "2023-04-01")
+  # filter(dt_admin >= "2022-09-24" & dt_admin <= "2023-06-10",
+  #        county != "Statewide")  %>%
+  # mutate(year_month = format(as.Date(dt_admin), "%Y-%m"))
 
 #min(vax$dt_admin)
 #max(vax$dt_admin)
@@ -318,8 +322,18 @@ flu_rate_by_age <- flu_rate_by_demo %>%
 flu_rate_by_sex <- flu_rate_by_demo %>%
   filter(demographic_category == "Gender")
 
-flu_rate_by_month <- flu %>%
-  group_by(year_month) %>%
+# flu_rate_by_month <- flu %>%
+#   group_by(year_month) %>%
+#   summarise(new_infections = sum(new_infections),
+#             new_severe = sum(new_severe)) %>%
+#   ungroup() %>%
+#   mutate(county = "California") %>%
+#   left_join(flu_pop_ca, by = "county") %>%
+#   mutate(rate_infections = round((new_infections/pop)*100000, digits=2),
+#          rate_severe =round((new_severe/pop)*100000, digits =2))
+
+flu_rate_by_quarter <- flu %>%
+  group_by(quarter) %>%
   summarise(new_infections = sum(new_infections),
             new_severe = sum(new_severe)) %>%
   ungroup() %>%
@@ -391,14 +405,18 @@ vax_rate_by_age <- vax_rate_by_demo %>%
 vax_rate_by_sex <- vax_rate_by_demo %>%
   filter(demographic_category == "Gender")
 
-vax_count_by_month <- vax %>%
-  group_by(year_month) %>%
-  summarise(total_partial_vaccinated = sum(total_partial_vaccinated, na.rm = TRUE),
-            cumulative_at_least_one_dose = sum(cumulative_at_least_one_dose, na.rm = TRUE)) %>%
-  ungroup()
+# vax_rate_by_month <- vax %>%
+#   group_by(year_month) %>%
+#   summarise(total_partial_vaccinated = sum(total_partial_vaccinated, na.rm = TRUE),
+#             cumulative_at_least_one_dose = sum(cumulative_at_least_one_dose, na.rm = TRUE)) %>%
+#   ungroup() %>%
+#   mutate(county = "California") %>%
+#   left_join(vax_pop_ca, by = "county")  %>%
+#   mutate(rate_total_partial = round((total_partial_vaccinated/pop)*100000, digits = 2),
+#          rate_cum_one_dose = round((cumulative_at_least_one_dose/pop)*100000, digits = 2))
 
-vax_rate_by_month <- vax %>%
-  group_by(year_month) %>%
+vax_rate_by_quarter <- vax %>%
+  group_by(quarter) %>%
   summarise(total_partial_vaccinated = sum(total_partial_vaccinated, na.rm = TRUE),
             cumulative_at_least_one_dose = sum(cumulative_at_least_one_dose, na.rm = TRUE)) %>%
   ungroup() %>%
