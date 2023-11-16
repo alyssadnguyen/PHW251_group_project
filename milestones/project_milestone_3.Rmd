@@ -25,6 +25,7 @@ library(tidyverse)
 library(dplyr)
 library(knitr)
 library(kableExtra)
+library(plotly)
 
 source_vax_CA <- read.csv("~/PHW251_group_project/data/ca_vax_rates_quarter.csv")
 source_flu_LA <- read.csv("~/PHW251_group_project/data/sim_flu_LACounty_pop.csv")
@@ -413,7 +414,7 @@ vax_rate_by_month <- vax %>%
 -   Data dictionary based on clean data set
 
 |                       |            |                                                                               |                                                                                                                                                                                                                                                                                                                      |
-|-----------------|-----------------|-----------------|----------------------|
+|-----------------|-----------------|-----------------|---------------------|
 | **Column Name**       | Format     | Definition                                                                    | Values                                                                                                                                                                                                                                                                                                               |
 | county                | Plain text | County of residence                                                           | California Counties                                                                                                                                                                                                                                                                                                  |
 | demogr aphic_value    | Plain text | Age, Race /Ethnicity, Gender                                                  | 0-17, 18-49, 50-64, 65+; MALE, FEMALE; "White, Non -Hispanic", "Black, Non -Hispanic", "American Indian or Alaska Native, Non -Hispanic", "Asian, Non -Hispanic", "Native Hawaiian or Pacific Islander, Non -Hispanic", " Multiracial (two or more of above races), Non -Hispanic", "Hispanic (any race)", "Unknown) |
@@ -499,6 +500,24 @@ summary(vax_count_by_month$total_partial_vaccinated)
 summary(vax_count_by_month$cumulative_at_least_one_dose)
 ```
 
-```{r}
-flu_vax_month <- inner_join (vax_rate_by_month, flu_rate_by_month, by ="year_month")
+```{r} 
+flu_vax_month <- inner_join (vax_rate_by_month,flu_rate_by_month, by ="year_month")
 
+plot_ly(
+ flu_vax_month,
+  x=~year_month,
+  y=~rate,
+  color=~disease_f,
+  type="scatter",
+  mode="lines",
+  colors=c("darkcyan","darkslateblue"),
+  text = ~paste('Cases: ',cases,'<br>Population: ',population,'<br>Rate: ',rate)
+) %>%
+  layout(
+    title="Alameda County STD Rates, 2001-2018",
+    yaxis=list(title="Case Rate per 100,000"),
+    xaxis=list(title="Year"),
+    paper_bgcolor="azure",
+    plot_bgcolor="white"
+  )
+```
