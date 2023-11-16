@@ -1,0 +1,27 @@
+---
+title: "project_milestone_4"
+output: html_document
+date: "2023-11-16"
+---
+
+```{r}
+
+flu_vax_race <- full_join(flu_rate_by_race, vax_rate_by_race, by = "demographic_value")
+# Splitting the plotting area into two columns
+par(mfrow = c(1, 2), mar = c(5, 4, 4, 2))
+
+# Plot for 'severe flu'
+barplot(flu_vax_race$rate_severe, names.arg = flu_vax_race$demographic_value, 
+        col = "blue", main = "Severe Flu", ylab = "Rate of Severe Flu", las = 2)
+
+# Plot for 'one dose' - adjust the margins to align with the first plot
+par(mar = c(5, 2, 4, 4))
+barplot(flu_vax_race$rate_cum_one_dose, names.arg = flu_vax_race$demographic_value, 
+        col = "red", main = "One Dose", ylab = "Rate of One Dose", las = 2)
+
+# Resetting graphical parameters to default
+par(mfrow = c(1, 1), mar = c(5, 4, 4, 2))
+
+
+```
+
