@@ -324,8 +324,8 @@ flu_rate_by_month <- flu %>%
   ungroup() %>%
   mutate(county = "California") %>%
   left_join(flu_pop_ca, by = "county") %>%
-  mutate(rate_infections = (new_infections/pop)*1000,
-         rate_severe = (new_severe/pop)*1000) 
+  mutate(rate_infections = round((new_infections/pop)*100000, digits=2),
+         rate_severe =round((new_severe/pop)*100000, digits =2))
 
 ```
 
@@ -403,8 +403,8 @@ vax_rate_by_month <- vax %>%
   ungroup() %>%
   mutate(county = "California") %>%
   left_join(vax_pop_ca, by = "county")  %>%
-  mutate(rate_total_partial = (total_partial_vaccinated/pop)*1000,
-         rate_cum_one_dose = (cumulative_at_least_one_dose/pop)*1000) 
+  mutate(rate_total_partial = round((total_partial_vaccinated/pop)*100000, digits = 2),
+         rate_cum_one_dose = round((cumulative_at_least_one_dose/pop)*100000, digits = 2))
 
 ```
 
@@ -413,7 +413,7 @@ vax_rate_by_month <- vax %>%
 -   Data dictionary based on clean data set
 
 |                       |            |                                                                               |                                                                                                                                                                                                                                                                                                                      |
-|----------------|----------------|----------------|------------------------|
+|-----------------|-----------------|-----------------|----------------------|
 | **Column Name**       | Format     | Definition                                                                    | Values                                                                                                                                                                                                                                                                                                               |
 | county                | Plain text | County of residence                                                           | California Counties                                                                                                                                                                                                                                                                                                  |
 | demogr aphic_value    | Plain text | Age, Race /Ethnicity, Gender                                                  | 0-17, 18-49, 50-64, 65+; MALE, FEMALE; "White, Non -Hispanic", "Black, Non -Hispanic", "American Indian or Alaska Native, Non -Hispanic", "Asian, Non -Hispanic", "Native Hawaiian or Pacific Islander, Non -Hispanic", " Multiracial (two or more of above races), Non -Hispanic", "Hispanic (any race)", "Unknown) |
@@ -499,7 +499,6 @@ summary(vax_count_by_month$total_partial_vaccinated)
 summary(vax_count_by_month$cumulative_at_least_one_dose)
 ```
 
--   Html output that is professionally prepared for presentation
+```{r}
+flu_vax_month <- inner_join (vax_rate_by_month, flu_rate_by_month, by ="year_month")
 
-    -   Only the necessary information is outputted (you should
-        suppress, for example, entire data frame outputs)
