@@ -121,7 +121,7 @@ flu_LA <- source_flu_LA %>%
 ```{r}
 
 flu_CA_LA <- rbind(flu_CA, flu_LA) %>%
-  mutate(quarter = floor_date(dt_diagnosis, "quarter"))
+  mutate(quarter = as.character(floor_date(dt_diagnosis, "quarter")))
 
 #colSums(is.na(flu_CA_LA))
 ```
