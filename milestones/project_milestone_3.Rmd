@@ -51,7 +51,7 @@ source_flu_CA <- read.csv("~/PHW251_group_project/data/sim_flu_CA.csv")
 
 ```{r}
 flu_CA <- source_flu_CA %>%
-  mutate(county = str_replace(county,"County",""),
+  mutate(county = str_replace(county," County",""),
          sex = str_to_title(sex),
          race_ethnicity = case_when(
            race_ethnicity == "1" ~ "White, Non-Hispanic",
