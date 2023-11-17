@@ -274,7 +274,7 @@ vax_pop_ca <- vax_pop_county %>%
 vax_rate_by_demo <- vax_count_by_demo %>%
   left_join(vax_pop_demo_state, by = c("demographic_value","demographic_category")) %>%
   mutate(rate_total_partial = round((total_partial_vaccinated/pop)*1000,2),
-         rate_cum_one_dose = round((cumulative_at_least_one_dose/pop)*1000,2) %>%
+         rate_cum_one_dose = round((cumulative_at_least_one_dose/pop)*1000,2)) %>%
   ungroup() %>%
   drop_na()
 
@@ -329,7 +329,7 @@ flu_vax_rate_by_demo <- flu_vax %>%
 
 str(flu_vax_rate_by_demo)
 
-kable(flu_vax_rate_by_demo,longtable = TRUE, booktabs = TRUE, col.names = c("Demographic Group", "Severe Flu", "COVID Vaccination"), caption = "Rates of Severe Flu and COVID Vaccination by Demographic Group, California") %>%
+kable(flu_vax_rate_by_demo,longtable = TRUE, booktabs = TRUE, col.names = c("Demographic Group", "Severe Flu", "COVID Vaccination"), caption = "Rates of Severe Flu and COVID Vaccination by Demographic Group, California, Quarter 3 2022 - Quarter 2 2023") %>%
   kable_styling(full_width = FALSE) %>%
   kable_styling(position = "left") %>%
   kable_styling(font_size = 10) %>%
@@ -339,7 +339,7 @@ kable(flu_vax_rate_by_demo,longtable = TRUE, booktabs = TRUE, col.names = c("Dem
   pack_rows("Race/Ethnicity",7,13) %>%
   collapse_rows(columns = 1, valign = "top") %>%
   # add_footnote("Rates are per 1,000 population", notation = "none") %>%
-  add_footnote("Based on diagnosis date from 9/24/2022 - 6/10/2023", notation = "none")
+  add_footnote("Based on flu diagnosis date and COVID-19 vaccination report date from Quarter 3 2022 - Quarter 2 2023", notation = "none")
 ```
 
 Interpretation: By age group, severe flu incidence increases with older age groups and vaccination is lowest in the youngest group (0-17 years). By race/ethnicity, severe flu incidence is highest within the White, non-Hispanic group and vaccination is lowest in the Multi-racial group followed by the White, non-Hispanic group.
@@ -368,11 +368,13 @@ plot_ly(
   y = ~rate_severe,
   type = "scatter",
   mode = "markers",
-  marker = list(color = "darkcyan"),  
-  text = ~paste('County: ', county, '<br>COVID Vaccination: ', rate_partial_vaccinated, '<br>Severe Flu: ', rate_severe)
+  marker = list(color = "darkcyan", line = list(color = "darkslateblue", width = 2)),  
+  text = ~paste('County: ', county, '<br>COVID Vaccination: ', rate_partial_vaccinated, '<br>Severe Flu: ', rate_severe),
+  hoverinfo = "text"
 ) %>%
   layout(
-    title = "County Rates of Severe Flu and Total Partially Vaccinated for COVID-19",
+    title = "County Rates of Severe Flu and Total Partially Vaccinated for COVID-19, California, 2022-2023",
+    titlefont = list(size = 13),
     yaxis = list(title = "Severe Flu Rate per 1,000"),
     xaxis = list(title = "Total Partially Vaccinated for COVID-19 Rate per 1,000")
   )
@@ -381,7 +383,7 @@ plot_ly(
 
 Interpretation: There is not a strong correlation at the county-level between rates of severe flu and total partially vaccinated for COVID-19. Severe flu rates ranged from 7.1 to 15.8 per 1,000, and COVID-19 vaccination ranged from 114.34 to 452.69 per 1,000. The data point for Imperial County was excluded due to outliner value (COVID-19 vaccination rate is 1728.22 per 1,000 population).
 
-**Faceted Subplot:** Rates of Severe Flu and Total Partially Vaccinated for COVID-19 by Race/Ethnicity, California
+**Faceted Subplot:** Rates of Severe Flu Incidence and Total Partially Vaccinated for COVID-19 by Race/Ethnicity, California
 
 ```{r, message=FALSE, warning=FALSE, echo = TRUE}
 flu_vax_race <- full_join(flu_rate_by_race, vax_rate_by_race, by = "demographic_value")
@@ -402,12 +404,13 @@ plot2 <- plot_ly(flu_vax_race,
                  marker = list(color = "darkslateblue"))
 
 subplot(plot1, plot2, nrows = 2, shareX = TRUE) %>%
-  layout(
-    xaxis = list(title = ""),
-    yaxis1 = list(title = "Rate per 1,000"),
-    yaxis2 = list(title = "Rate per 1,000"),
-    title = "Rates of Severe Flu and COVID Partially Vaccinated by Race/Ethnicity in California"
+    layout(
+    title = "Rates of Severe Flu and COVID Partially Vaccinated by Race/Ethnicity, California, 2022-2023",
+    titlefont = list(size = 13),
+    yaxis2 = list(title = "Severe Flu Rate per 1,000"),
+    xaxis = list(title = "")
   )
+  
 ```
 
 Interpretation: There is no strong correlation between rates of severe flu and total partially vaccinated for COVID-19 between different racial/ethnic groups. Severe flu rates were lowest among the Multiracial group (5.72 per 1,000) and highest among the White, non-Hispanic group (12.59 per 1,000). Total partially vaccinated rates were also lowest among the Multiracial group (88.75 per 1,000) and highest among the Native Hawaiian/Pacific Islander group (365.53 per 1,000).
@@ -423,6 +426,7 @@ plot_ly(flu_vax_quarter, x = ~quarter, y = ~rate_total_partial, type = "bar", na
   add_trace(x = ~quarter, y = ~rate_infections, type = "bar", name = "Flu Diagnosed", marker = list(color = "darkslateblue")) %>%
   layout(
     title = "Rates of Partially COVID Vaccinated and Newly Flu Diagnosed by Quarter, California, 2022-2023",
+    titlefont = list(size = 13),
     yaxis = list(title = "Rate per 1,000"),
     xaxis = list(title = "Quarter Beginning"),
     plot_bgcolor = "white"
