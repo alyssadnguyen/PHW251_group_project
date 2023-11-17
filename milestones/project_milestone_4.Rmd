@@ -4,11 +4,38 @@ output: html_document
 date: "2023-11-16"
 ---
 
-### Visualizations
+```{r}
+library(tidyverse)
+library(dplyr)
+library(plotly)  
+library(kableExtra)
+```
+
+
+###Joining Datasets
+```{r}
+
+flu_vax <- flu %>%
+  full_join(vax, by = c("county","demographic_value","demographic_category","quarter"))
+
+```
+###Visualizations
 
 **Table**: Rates of Severe Flu and COVID Vaccination by Demographic Group
 
 ```{r}
+flu_vax_rate_by_demo <- flu_vax %>%
+  group_by(demographic_category,demographic_value) %>%
+  summarise(new_severe = sum(new_severe, na.rm = TRUE),
+            total_partial_vaccinated = sum(total_partial_vaccinated, na.rm = TRUE)) %>%
+  ungroup() %>%
+  left_join(flu_pop_demo_state, by = "demographic_value") %>%
+  left_join(vax_pop_demo_state, by = "demographic_value") %>%
+  mutate(rate_severe = round((new_severe/pop.x)*1000,2),
+         rate_partial_vaccinated = round((total_partial_vaccinated/pop.y)*1000,2)) %>%
+  select(demographic_value, rate_severe, rate_partial_vaccinated) %>%
+  drop_na()
+
 flu_vax_rate_by_demo <- flu_vax %>%
   group_by(demographic_category,demographic_value) %>%
   summarise(new_severe = sum(new_severe, na.rm = TRUE),
