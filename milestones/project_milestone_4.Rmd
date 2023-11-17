@@ -1,41 +1,337 @@
 ---
-title: "project_milestone_4"
+title: "Project Milestone 4"
 output: html_document
 date: "2023-11-16"
 ---
 
-```{r}
+**Scenario 1**\
+**Jourdan Jerome, Kateryna Louchnikov, Alyssa Nguyen**
+
+
+
+```{r , include=FALSE, message=FALSE}
+
+#Set packages and import data
+
 library(tidyverse)
 library(dplyr)
 library(plotly)  
 library(kableExtra)
+
+source_vax_CA <- read.csv("~/PHW251_group_project/data/ca_vax_rates_quarter.csv")
+source_flu_LA <- read.csv("~/PHW251_group_project/data/sim_flu_LACounty_pop.csv")
+source_flu_CA <- read.csv("~/PHW251_group_project/data/sim_flu_CA.csv")
+
 ```
 
 
-###Joining Datasets
+
+```{r , include=FALSE, message=FALSE}
+
+##Clean and stack flu data sets
+#Clean CA flu data
+
+flu_CA <- source_flu_CA %>%
+  mutate(county = str_replace(county," County",""),
+         sex = str_to_title(sex),
+         race_ethnicity = case_when(
+           race_ethnicity == "1" ~ "White, Non-Hispanic",
+           race_ethnicity == "2" ~ "Black, Non-Hispanic",
+           race_ethnicity == "3" ~ "American Indian or Alaska Native, Non-Hispanic",
+           race_ethnicity == "4" ~ "Asian, Non-Hispanic",
+           race_ethnicity == "5" ~ "Native Hawaiian or Pacific Islander, Non-Hispanic",
+           race_ethnicity == "6" ~ "Multiracial (two or more of above races), Non-Hispanic",
+           race_ethnicity == "7" ~ "Hispanic (any race)",
+           race_ethnicity == "9" ~ "Unknown"),
+         report_date = as.Date(report_date, format = "%Y-%m-%d"),
+         dt_diagnosis = as.Date(dt_diagnosis, format = "%Y-%m-%d"))
+
+#Clean LA flu data to match CA flu data
+
+flu_LA <- source_flu_LA %>%
+  rename(new_infections = DX_NEW,
+         new_recovered = RECOVERED_NEW,
+         count_susceptible = SUSCEPTIBLE,
+         current_infected = INFECTED_CURRENT,
+         cumulative_infected = INFECTED_CUMULATIVE,
+         cumulative_recovered = RECOVERED_CUMULATIVE,
+         new_severe = SEVERE_NEW,
+         cumulative_severe = SEVERE_CUMULATIVE,
+         age_cat = AGE_CATEGORY,
+         sex = SEX,
+         race_ethnicity = RACE_ETH,
+         report_date = DT_REPORT,
+         dt_diagnosis = DT_DX,
+         pop = POPULATION) %>%
+  mutate(county = "Los Angeles",
+         sex = str_to_title(sex),
+         dt_diagnosis = as.Date(dt_diagnosis, format = "%d%b%Y"),
+         time_int = NA_character_,
+         new_unrecovered = NA_real_,
+         cumulative_unrecovered = NA_real_) %>%
+  select(county,
+         time_int,
+         new_infections,
+         new_recovered,
+         count_susceptible,
+         current_infected,
+         cumulative_infected,
+         cumulative_recovered,
+         new_unrecovered,
+         cumulative_unrecovered,
+         new_severe,
+         cumulative_severe,
+         age_cat,
+         sex,
+         race_ethnicity,
+         report_date,
+         dt_diagnosis,
+         pop)
+
+#Stack CA and LA flu data
+
+flu_CA_LA <- rbind(flu_CA, flu_LA) %>%
+  mutate(quarter = as.character(floor_date(dt_diagnosis, "quarter")))
+
+## Restructure flu data so one demographic variable per row
+
+#only one demographic value case per row 
+
+flu_age <- flu_CA_LA %>%
+  group_by(county,age_cat,quarter) %>%
+  summarise(new_infections = sum(new_infections),
+            new_severe = sum(new_severe)) %>%
+  ungroup()  %>%
+  mutate(demographic_category = "Age Group") %>%
+  rename(demographic_value = age_cat)
+
+flu_sex <- flu_CA_LA %>%
+  group_by(county,sex,quarter) %>%
+  summarise(new_infections = sum(new_infections),
+            new_severe = sum(new_severe)) %>%
+  ungroup() %>%
+  mutate(demographic_category = "Gender") %>%
+  rename(demographic_value = sex)
+
+flu_race <- flu_CA_LA %>%
+  group_by(county,race_ethnicity,quarter) %>%
+  summarise(new_infections = sum(new_infections),
+            new_severe = sum(new_severe)) %>%
+  ungroup() %>%
+  mutate(demographic_category = "Race/Ethnicity") %>%
+  rename(demographic_value = race_ethnicity)
+
+flu_cases <- rbind(flu_age, flu_sex, flu_race)
+
+#only one demographic population group per row
+
+pop_flu_age <- flu_CA_LA %>%
+  distinct(county,age_cat,sex,race_ethnicity,pop) %>%
+  group_by(county,age_cat) %>%
+  summarise(pop = sum(pop)) %>%
+  ungroup() %>%
+  rename(demographic_value = age_cat) %>%
+  mutate(demographic_category = "Age Group")
+
+pop_flu_sex <- flu_CA_LA %>%
+  distinct(county,age_cat,sex,race_ethnicity,pop) %>%
+  group_by(county,sex) %>%
+  summarise(pop = sum(pop)) %>%
+  ungroup() %>%
+  rename(demographic_value = sex) %>%
+  mutate(demographic_category = "Gender")
+
+pop_flu_race <- flu_CA_LA %>%
+  distinct(county,age_cat,sex,race_ethnicity,pop) %>%
+  group_by(county,race_ethnicity) %>%
+  summarise(pop = sum(pop)) %>%
+  ungroup() %>%
+  rename(demographic_value = race_ethnicity) %>%
+  mutate(demographic_category = "Race/Ethnicity")
+
+flu_pop <- rbind(pop_flu_age, pop_flu_sex, pop_flu_race)
+
+#Join both new_infection and pop to create final flu data table (flu)
+
+flu <- flu_cases %>%
+  full_join(flu_pop, by = c("county","demographic_value","demographic_category")) 
+
+```
+
+
+
+```{r , include=FALSE, message=FALSE}
+
+#Clean COVID data
+
+vax <- source_vax_CA %>%
+  rename_with(~ tolower(gsub(".","_",.x,fixed=TRUE))) %>%
+  rename(pop = estimated_population,
+         county = county_name) %>%
+  mutate(dt_admin = as.Date(dt_admin, format = "%Y-%m-%d"),
+         demographic_value = case_when(
+           demographic_value == "Under 5" ~ "0-17",
+           demographic_value == "5-11" ~ "0-17",
+           demographic_value == "12-17" ~ "0-17",
+           demographic_value == "American Indian or Alaska Native" ~ "American Indian or Alaska Native, Non-Hispanic",
+           demographic_value == "Asian" ~ "Asian, Non-Hispanic",
+           demographic_value == "Black or African American" ~ "Black, Non-Hispanic",
+           demographic_value == "Latino" ~ "Hispanic (any race)",
+           demographic_value == "Multiracial" ~ "Multiracial (two or more of above races), Non-Hispanic",
+           demographic_value == "Native Hawaiian or Other Pacific Islander" ~ "Native Hawaiian or Pacific Islander, Non-Hispanic",
+           demographic_value == "White" ~ "White, Non-Hispanic",
+           #  demographic_value == "Other Race" ~ "Unknown",
+           #  demographic_value == "Unknown/undifferentiated" ~ "Unknown gender"
+           TRUE ~ demographic_value)) %>%
+  group_by(county,demographic_category,demographic_value,quarter) %>%
+  summarise(pop=sum(pop),
+            total_partial_vaccinated = sum(total_partial_vaccinated),
+            cumulative_fully_vaccinated = sum(cumulative_fully_vaccinated),
+            cumulative_at_least_one_dose = sum(cumulative_at_least_one_dose),
+            cumulative_up_to_date_vax = sum(cumulative_up_to_date_vax)) %>%
+  ungroup() %>%
+  filter(quarter >= "2022-07-01" & quarter <= "2023-04-01",
+         county != "Statewide")
+
+```
+
+
+```{r , include=FALSE, message=FALSE}
+
+#Aggregate flu data
+
+flu_counts_by_demo <- flu %>%
+  group_by(demographic_category,demographic_value) %>%
+  summarise(new_infections = sum(new_infections),
+            new_severe = sum(new_severe)) %>%
+  ungroup()
+
+flu_pop_demo_state <- flu_pop %>%
+  group_by(demographic_category,demographic_value) %>%
+  summarise(pop = sum(pop)) %>%
+  ungroup()
+
+flu_pop_county <- flu_pop %>%
+  filter(demographic_category == "Age Group") %>%
+  group_by(county) %>%
+  summarise(pop = sum(pop)) %>%
+  ungroup()
+
+flu_pop_ca <- flu_pop %>%
+  filter(demographic_category == "Age Group") %>%
+  summarise(pop = sum(pop)) %>%
+  mutate(county = "California")
+
+flu_rate_by_demo <- flu_counts_by_demo %>%
+  left_join(flu_pop_demo_state, by = c("demographic_value","demographic_category")) %>%
+  mutate(rate_infections = (new_infections/pop)*1000,
+         rate_severe = (new_severe/pop)*1000) %>%
+  ungroup()
+
+flu_rate_by_race <- flu_rate_by_demo %>%
+  filter(demographic_category == "Race/Ethnicity")
+
+flu_rate_by_age <- flu_rate_by_demo %>%
+  filter(demographic_category == "Age Group")
+
+flu_rate_by_sex <- flu_rate_by_demo %>%
+  filter(demographic_category == "Gender")
+
+flu_rate_by_quarter <- flu %>%
+  filter(demographic_category == "Gender") %>%
+  group_by(quarter) %>%
+  summarise(new_infections = sum(new_infections),
+            new_severe = sum(new_severe)) %>%
+  ungroup() %>%
+  mutate(county = "California") %>%
+  left_join(flu_pop_ca, by = "county") %>%
+  mutate(rate_infections = round((new_infections/pop)*1000, digits=2),
+         rate_severe =round((new_severe/pop)*1000, digits =2))
+
+```
+
+
+```{r , include=FALSE, message=FALSE}
+
+#Aggregate COVID vax data
+
+vax_count_by_demo <- vax %>%
+  group_by(demographic_category,demographic_value) %>%
+  summarise(total_partial_vaccinated = sum(total_partial_vaccinated, na.rm = TRUE),
+            cumulative_at_least_one_dose = sum(cumulative_at_least_one_dose, na.rm = TRUE)) %>%
+  ungroup()
+
+vax_pop <- vax %>%
+  distinct(county,demographic_category,demographic_value, pop)%>% 
+  filter(demographic_value != "Unknown/undifferentiated", demographic_value != "Other Race", demographic_value != "Unknown")
+
+vax_pop_demo_state <- vax_pop %>%
+  group_by(demographic_category,demographic_value) %>%
+  summarise(pop = sum(pop, na.rm = TRUE)) %>%
+  ungroup()  
+
+vax_pop_county <- vax_pop %>%
+  filter(demographic_category == "Age Group") %>%
+  group_by(county) %>%
+  summarise(pop = sum(pop))
+
+vax_pop_ca <- vax_pop_county %>%
+  summarise(pop = sum(pop)) %>%
+  mutate(county = "California")
+
+vax_rate_by_demo <- vax_count_by_demo %>%
+  left_join(vax_pop_demo_state, by = c("demographic_value","demographic_category")) %>%
+  mutate(rate_total_partial = (total_partial_vaccinated/pop)*1000,
+         rate_cum_one_dose = (cumulative_at_least_one_dose/pop)*1000) %>%
+  ungroup() %>%
+  drop_na()
+
+vax_rate_by_race <- vax_rate_by_demo %>%
+  filter(demographic_category == "Race/Ethnicity")
+
+vax_rate_by_age <- vax_rate_by_demo %>%
+  filter(demographic_category == "Age Group")
+
+vax_rate_by_sex <- vax_rate_by_demo %>%
+  filter(demographic_category == "Gender")
+
+# vax_rate_by_month <- vax %>%
+#   group_by(year_month) %>%
+#   summarise(total_partial_vaccinated = sum(total_partial_vaccinated, na.rm = TRUE),
+#             cumulative_at_least_one_dose = sum(cumulative_at_least_one_dose, na.rm = TRUE)) %>%
+#   ungroup() %>%
+#   mutate(county = "California") %>%
+#   left_join(vax_pop_ca, by = "county")  %>%
+#   mutate(rate_total_partial = round((total_partial_vaccinated/pop)*100000, digits = 2),
+#          rate_cum_one_dose = round((cumulative_at_least_one_dose/pop)*100000, digits = 2))
+
+vax_rate_by_quarter <- vax %>%
+  filter(demographic_category == "Gender") %>%
+  group_by(quarter) %>%
+  summarise(total_partial_vaccinated = sum(total_partial_vaccinated, na.rm = TRUE),
+            cumulative_at_least_one_dose = sum(cumulative_at_least_one_dose, na.rm = TRUE)) %>%
+  ungroup() %>%
+  mutate(county = "California") %>%
+  left_join(vax_pop_ca, by = "county")  %>%
+  mutate(rate_total_partial = round((total_partial_vaccinated/pop)*1000, digits = 2),
+         rate_cum_one_dose = round((cumulative_at_least_one_dose/pop)*1000, digits = 2))
+
+```
+
+### Joining Datasets
+
 ```{r}
 
 flu_vax <- flu %>%
   full_join(vax, by = c("county","demographic_value","demographic_category","quarter"))
 
 ```
-###Visualizations
+
+### Visualizations
 
 **Table**: Rates of Severe Flu and COVID Vaccination by Demographic Group
 
-```{r}
-flu_vax_rate_by_demo <- flu_vax %>%
-  group_by(demographic_category,demographic_value) %>%
-  summarise(new_severe = sum(new_severe, na.rm = TRUE),
-            total_partial_vaccinated = sum(total_partial_vaccinated, na.rm = TRUE)) %>%
-  ungroup() %>%
-  left_join(flu_pop_demo_state, by = "demographic_value") %>%
-  left_join(vax_pop_demo_state, by = "demographic_value") %>%
-  mutate(rate_severe = round((new_severe/pop.x)*1000,2),
-         rate_partial_vaccinated = round((total_partial_vaccinated/pop.y)*1000,2)) %>%
-  select(demographic_value, rate_severe, rate_partial_vaccinated) %>%
-  drop_na()
-
+```{r, message=FALSE}
 flu_vax_rate_by_demo <- flu_vax %>%
   group_by(demographic_category,demographic_value) %>%
   summarise(new_severe = sum(new_severe, na.rm = TRUE),
@@ -61,7 +357,8 @@ kable(flu_vax_rate_by_demo,longtable = TRUE, booktabs = TRUE, col.names = c("Dem
   add_footnote("Based on diagnosis date from 9/24/2022 - 6/10/2023", notation = "none")
 ```
 
-Interpretation: 
+Interpretation: This table displays rates for severe flu incidence and COVID-19 vaccination by demographic group. By age group, flu incidence increases with older age groups and vaccination is lowest in the youngest group (0-17 years). By race/ethnicity, flu incidence is highest within the White, non-Hispanic group and vaccination is lowest in the Multi-racial group followed by the White, non-Hispanic group. 
+
 
 
 ```{r}
@@ -108,6 +405,7 @@ subplot(plot1, plot2, nrows = 2, shareX = TRUE) %>%
 
 
 ```
+
 ```{r}
 flu_vax_quarter <- inner_join (vax_rate_by_quarter,flu_rate_by_quarter, by ="quarter")
 
