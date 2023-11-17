@@ -249,7 +249,8 @@ vax <- source_vax_CA %>%
           cumulative_at_least_one_dose = sum(cumulative_at_least_one_dose),
           cumulative_up_to_date_vax = sum(cumulative_up_to_date_vax)) %>%
   ungroup() %>%
-  filter(quarter >= "2022-07-01" & quarter <= "2023-04-01")
+  filter(quarter >= "2022-07-01" & quarter <= "2023-04-01",
+         county != "Statewide")
   # filter(dt_admin >= "2022-09-24" & dt_admin <= "2023-06-10",
   #        county != "Statewide")  %>%
   # mutate(year_month = format(as.Date(dt_admin), "%Y-%m"))
