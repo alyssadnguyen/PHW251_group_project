@@ -394,50 +394,32 @@ plot_ly(
 
 Interpretation: There is not a strong correlation at the county-level between rates of severe flu and total partially vaccinated for COVID-19. Severe flu rates ranged from 7.1 to 15.8 per 1,000, and COVID-19 vaccination ranged from 114.34 to 452.69 oer 1,000. The data point for Imperial County was excluded due to outliner value (COVID-19 vaccination rate is 1728.22 per 1,000 population). 
 
+
+
 ```{r}
-
-flu_vax_race <- full_join(flu_rate_by_race, vax_rate_by_race, by = "demographic_value")
-# Splitting the plotting area into two columns
-par(mfrow = c(1, 2), mar = c(5, 4, 4, 2))
-
-# Plot for 'severe flu'
-barplot(flu_vax_race$rate_severe, names.arg = flu_vax_race$demographic_value, 
-        col = "blue", main = "Severe Flu", ylab = "Rate of Severe Flu", las = 2)
-
-# Plot for 'one dose' - adjust the margins to align with the first plot
-par(mar = c(5, 2, 4, 4))
-barplot(flu_vax_race$rate_cum_one_dose, names.arg = flu_vax_race$demographic_value, 
-        col = "red", main = "One Dose", ylab = "Rate of One Dose", las = 2)
-
-# Resetting graphical parameters to default
-par(mfrow = c(1, 1), mar = c(5, 4, 4, 2))
-
-
 plot1 <- plot_ly(flu_vax_race,
                  x = ~demographic_value,
                  y = ~rate_severe,
                  name = "Severe Flu",
-                 type = "scatter",
-                 mode = "lines+markers",
+                 type = "bar",
                  marker = list(color = "darkcyan"))
 
 plot2 <- plot_ly(flu_vax_race,
                  x = ~demographic_value,
                  y = ~rate_total_partial,
                  name = "COVID Partially Vaccinated",
-                 type = "scatter",
-                 mode = "lines+markers",
+                 type = "bar",
                  marker = list(color = "darkslateblue"))
 
 subplot(plot1, plot2, nrows = 2, shareX = TRUE) %>%
   layout(
     xaxis = list(title = ""),
-    yaxis = list(title = "Rate per 1,000"),
-    title = "Rates for Severe Flu and COVID Partially Vaccinated by Demographic Value in California"
+    yaxis1 = list(title = "Rate per 1,000"),
+    yaxis2 = list(title = "Rate per 1,000"),
+    title = "Rates for Severe Flu and COVID Partially Vaccinated by Race/Ethnicity in California"
   )
-
-
 ```
+
 
 ```{r}
 flu_vax_quarter <- inner_join (vax_rate_by_quarter,flu_rate_by_quarter, by ="quarter")
