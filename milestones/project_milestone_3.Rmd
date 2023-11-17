@@ -339,8 +339,8 @@ flu_rate_by_quarter <- flu %>%
   ungroup() %>%
   mutate(county = "California") %>%
   left_join(flu_pop_ca, by = "county") %>%
-  mutate(rate_infections = round((new_infections/pop)*100000, digits=2),
-         rate_severe =round((new_severe/pop)*100000, digits =2))
+  mutate(rate_infections = round((new_infections/pop)*1000, digits=2),
+         rate_severe =round((new_severe/pop)*1000, digits =2))
 
 ```
 
@@ -422,8 +422,8 @@ vax_rate_by_quarter <- vax %>%
   ungroup() %>%
   mutate(county = "California") %>%
   left_join(vax_pop_ca, by = "county")  %>%
-  mutate(rate_total_partial = round((total_partial_vaccinated/pop)*100000, digits = 2),
-         rate_cum_one_dose = round((cumulative_at_least_one_dose/pop)*100000, digits = 2))
+  mutate(rate_total_partial = round((total_partial_vaccinated/pop)*1000, digits = 2),
+         rate_cum_one_dose = round((cumulative_at_least_one_dose/pop)*1000, digits = 2))
 
 ```
 
@@ -519,23 +519,29 @@ summary(vax_count_by_month$cumulative_at_least_one_dose)
 ```
 
 ```{r} 
-flu_vax_month <- inner_join (vax_rate_by_month,flu_rate_by_month, by ="year_month")
+flu_vax_quarter <- inner_join (vax_rate_by_quarter,flu_rate_by_quarter, by ="quarter")
+
 
 plot_ly(
- flu_vax_month,
-  x=~year_month,
-  y=~rate,
-  color=~disease_f,
-  type="scatter",
-  mode="lines",
-  colors=c("darkcyan","darkslateblue"),
-  text = ~paste('Cases: ',cases,'<br>Population: ',population,'<br>Rate: ',rate)
+  flu_rate_by_quarter,
+  x = ~quarter,
+  y = ~rate_total_partial,
+  name = "Partial COVID Vaccination",
+  type = "scatter",
+  
+  mode = "markers",
+  marker = list(color = "darkcyan")
 ) %>%
+  add_trace(
+    x = ~quarter,
+    y = ~rate_infections,
+    name = "New Flu Cases",
+    type = "scatter",
+    mode = "lines",
+    line = list(color = "darkslateblue")
+  ) %>%
   layout(
-    title="Alameda County STD Rates, 2001-2018",
-    yaxis=list(title="Case Rate per 100,000"),
-    xaxis=list(title="Year"),
-    paper_bgcolor="azure",
-    plot_bgcolor="white"
+    title = "COVID and Flu Rates by Quarter, 2022-2023",
+    yaxis = list(title = "Rate per 1000"),
+    xaxis = list(title = "Quarters")
   )
-```
