@@ -412,7 +412,7 @@ subplot(plot1, plot2, nrows = 2, shareX = TRUE) %>%
 
 Interpretation:
 
-**Bar Chart:**
+**Bar Chart:**Rates for Partially COVID Vaccinated and Newly Flu Diagnosed by Quarter in California, 2022-2023
 
 ```{r, message=FALSE, warning=FALSE. echo = TRUE}
 flu_vax_quarter <- inner_join (vax_rate_by_quarter,flu_rate_by_quarter, by ="quarter")
