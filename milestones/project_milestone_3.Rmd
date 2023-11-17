@@ -334,6 +334,7 @@ flu_rate_by_sex <- flu_rate_by_demo %>%
 #          rate_severe =round((new_severe/pop)*100000, digits =2))
 
 flu_rate_by_quarter <- flu %>%
+  filter(demographic_category == "Gender") %>%
   group_by(quarter) %>%
   summarise(new_infections = sum(new_infections),
             new_severe = sum(new_severe)) %>%
@@ -417,6 +418,7 @@ vax_rate_by_sex <- vax_rate_by_demo %>%
 #          rate_cum_one_dose = round((cumulative_at_least_one_dose/pop)*100000, digits = 2))
 
 vax_rate_by_quarter <- vax %>%
+  filter(demographic_category == "Gender") %>%
   group_by(quarter) %>%
   summarise(total_partial_vaccinated = sum(total_partial_vaccinated, na.rm = TRUE),
             cumulative_at_least_one_dose = sum(cumulative_at_least_one_dose, na.rm = TRUE)) %>%
