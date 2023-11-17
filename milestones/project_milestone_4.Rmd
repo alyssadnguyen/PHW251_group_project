@@ -4,6 +4,39 @@ output: html_document
 date: "2023-11-16"
 ---
 
+### Visualizations
+
+**Table**: Rates of Severe Flu and COVID Vaccination by Demographic Group
+
+```{r}
+flu_vax_rate_by_demo <- flu_vax %>%
+  group_by(demographic_category,demographic_value) %>%
+  summarise(new_severe = sum(new_severe, na.rm = TRUE),
+            total_partial_vaccinated = sum(total_partial_vaccinated, na.rm = TRUE)) %>%
+  ungroup() %>%
+  left_join(flu_pop_demo_state, by = "demographic_value") %>%
+  left_join(vax_pop_demo_state, by = "demographic_value") %>%
+  mutate(rate_severe = round((new_severe/pop.x)*1000,2),
+         rate_partial_vaccinated = round((total_partial_vaccinated/pop.y)*1000,2)) %>%
+  select(demographic_value, rate_severe, rate_partial_vaccinated) %>%
+  drop_na()
+
+kable(flu_vax_rate_by_demo,longtable = TRUE, booktabs = TRUE, col.names = c("Demographic Group", "Severe Flu", "COVID Vaccination"), caption = "Rates of Severe Flu and COVID Vaccination by Demographic Group, California") %>%
+  kable_styling(full_width = FALSE) %>%
+  kable_styling(position = "left") %>%
+  kable_styling(font_size = 10) %>%
+  add_header_above(c(" "=1,"Rate per 1,000 population"=2)) %>%
+  pack_rows("Age Group",1,4)%>%
+  pack_rows("Gender",5,6) %>%
+  pack_rows("Race/Ethnicity",7,13) %>%
+  collapse_rows(columns = 1, valign = "top") %>%
+  # add_footnote("Rates are per 1,000 population", notation = "none") %>%
+  add_footnote("Based on diagnosis date from 9/24/2022 - 6/10/2023", notation = "none")
+```
+
+Interpretation: 
+
+
 ```{r}
 
 flu_vax_race <- full_join(flu_rate_by_race, vax_rate_by_race, by = "demographic_value")
@@ -22,6 +55,4 @@ barplot(flu_vax_race$rate_cum_one_dose, names.arg = flu_vax_race$demographic_val
 # Resetting graphical parameters to default
 par(mfrow = c(1, 1), mar = c(5, 4, 4, 2))
 
-
 ```
-
