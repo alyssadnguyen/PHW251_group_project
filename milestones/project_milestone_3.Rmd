@@ -511,14 +511,14 @@ kable(vax_demo_stats,longtable=T,booktabs=T, col.names=c("Demographic Category",
 
 
 #Descriptive stats for rate of new infections by month
-summary(flu_rate_by_month$new_infections)
+#summary(flu_rate_by_month$new_infections)
 #Descriptive stats for rate of new severe infections by month
-summary(flu_rate_by_month$new_severe)
+#summary(flu_rate_by_month$new_severe)
 
 #Descriptive stats for count of totally partially vaccinated by month
-summary(vax_count_by_month$total_partial_vaccinated)
+#summary(vax_count_by_month$total_partial_vaccinated)
 #Descriptive stats for count of cumulative at least one dose by month
-summary(vax_count_by_month$cumulative_at_least_one_dose)
+#summary(vax_count_by_month$cumulative_at_least_one_dose)
 ```
 
 ```{r} 
