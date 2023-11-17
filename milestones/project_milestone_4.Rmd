@@ -83,3 +83,53 @@ barplot(flu_vax_race$rate_cum_one_dose, names.arg = flu_vax_race$demographic_val
 par(mfrow = c(1, 1), mar = c(5, 4, 4, 2))
 
 ```
+```{r}
+flu_vax_quarter <- inner_join (vax_rate_by_quarter,flu_rate_by_quarter, by ="quarter")
+
+
+plot_ly(
+  flu_vax_quarter,
+  x = ~quarter,
+  y = ~rate_total_partial,
+  name = "Partial COVID Vaccination",
+  type = "scatter",
+  mode = "lines+markers",
+  marker = list(color = "darkcyan")
+) %>%
+  add_trace(
+    x = ~quarter,
+    y = ~rate_infections,
+    name = "Flu Diagnosed",
+    type = "scatter",
+    mode = "lines",
+    line = list(color = "darkslateblue")
+  ) %>%
+  layout(
+    title = "Rates for Partially COVID Vaccinated and Newly Flu Diagnosed by Quarter in California, 2022-2023",
+    yaxis = list(title = "Rate per 1,000"),
+    xaxis = list(title = "Quarters"),
+    plot_bgcolor="white"
+  )
+
+
+plot_ly(flu_vax_quarter, x = ~quarter, y = ~rate_total_partial, type = "bar", name = "Partial COVID Vaccination", marker = list(color = "darkcyan")) %>%
+  add_trace(x = ~quarter, y = ~rate_infections, type = "bar", name = "Flu Diagnosed", marker = list(color = "darkslateblue")) %>%
+  layout(
+    title = "Rates for Partially COVID Vaccinated and Newly Flu Diagnosed by Quarter in California, 2022-2023",
+    yaxis = list(title = "Rate per 1,000"),
+    xaxis = list(title = "Quarters"),
+    plot_bgcolor = "white"
+  )
+
+library(ggplot2)
+ggplot(flu_vax_quarter, aes(x = quarter)) +
+  geom_bar(aes(y = rate_total_partial, fill = "Partial COVID Vaccination"), stat = "identity") +
+  geom_bar(aes(y = rate_infections, fill = "Flu Diagnosed"), stat = "identity") +
+  labs(
+    title = "Rates for Partially COVID Vaccinated and Newly Flu Diagnosed by Quarter in California, 2022-2023",
+    y = "Rate per 1,000",
+    x = "Quarters"
+  ) +
+  scale_fill_manual(values = c("darkcyan", "darkslateblue")) +
+  theme_minimal()
+```
