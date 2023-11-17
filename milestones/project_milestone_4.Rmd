@@ -82,6 +82,31 @@ barplot(flu_vax_race$rate_cum_one_dose, names.arg = flu_vax_race$demographic_val
 # Resetting graphical parameters to default
 par(mfrow = c(1, 1), mar = c(5, 4, 4, 2))
 
+
+plot1 <- plot_ly(flu_vax_race,
+                 x = ~demographic_value,
+                 y = ~rate_severe,
+                 name = "Severe Flu",
+                 type = "scatter",
+                 mode = "lines+markers",
+                 marker = list(color = "darkcyan"))
+
+plot2 <- plot_ly(flu_vax_race,
+                 x = ~demographic_value,
+                 y = ~rate_total_partial,
+                 name = "COVID Partially Vaccinated",
+                 type = "scatter",
+                 mode = "lines+markers",
+                 marker = list(color = "darkslateblue"))
+
+subplot(plot1, plot2, nrows = 2, shareX = TRUE) %>%
+  layout(
+    xaxis = list(title = ""),
+    yaxis = list(title = "Rate per 1,000"),
+    title = "Rates for Severe Flu and COVID Partially Vaccinated by Demographic Value in California"
+  )
+
+
 ```
 ```{r}
 flu_vax_quarter <- inner_join (vax_rate_by_quarter,flu_rate_by_quarter, by ="quarter")
