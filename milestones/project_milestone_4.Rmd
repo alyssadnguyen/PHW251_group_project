@@ -7,9 +7,7 @@ date: "2023-11-16"
 **Scenario 1**\
 **Jourdan Jerome, Kateryna Louchnikov, Alyssa Nguyen**
 
-
-
-```{r , include=FALSE, message=FALSE}
+```{r , include=FALSE, message=FALSE, warning=FALSE}
 
 #Set packages and import data
 
@@ -24,9 +22,7 @@ source_flu_CA <- read.csv("~/PHW251_group_project/data/sim_flu_CA.csv")
 
 ```
 
-
-
-```{r , include=FALSE, message=FALSE}
+```{r , include=FALSE, message=FALSE warning= FALSE}
 
 ##Clean and stack flu data sets
 #Clean CA flu data
@@ -158,9 +154,7 @@ flu <- flu_cases %>%
 
 ```
 
-
-
-```{r , include=FALSE, message=FALSE}
+```{r , include=FALSE, message=FALSE, warning=FALSE}
 
 #Clean COVID data
 
@@ -195,8 +189,7 @@ vax <- source_vax_CA %>%
 
 ```
 
-
-```{r , include=FALSE, message=FALSE}
+```{r , include=FALSE, message=FALSE, warning=FALSE}
 
 #Aggregate flu data
 
@@ -250,8 +243,7 @@ flu_rate_by_quarter <- flu %>%
 
 ```
 
-
-```{r , include=FALSE, message=FALSE}
+```{r , include=FALSE, message=FALSE, warning=FALSE}
 
 #Aggregate COVID vax data
 
@@ -295,16 +287,6 @@ vax_rate_by_age <- vax_rate_by_demo %>%
 vax_rate_by_sex <- vax_rate_by_demo %>%
   filter(demographic_category == "Gender")
 
-# vax_rate_by_month <- vax %>%
-#   group_by(year_month) %>%
-#   summarise(total_partial_vaccinated = sum(total_partial_vaccinated, na.rm = TRUE),
-#             cumulative_at_least_one_dose = sum(cumulative_at_least_one_dose, na.rm = TRUE)) %>%
-#   ungroup() %>%
-#   mutate(county = "California") %>%
-#   left_join(vax_pop_ca, by = "county")  %>%
-#   mutate(rate_total_partial = round((total_partial_vaccinated/pop)*100000, digits = 2),
-#          rate_cum_one_dose = round((cumulative_at_least_one_dose/pop)*100000, digits = 2))
-
 vax_rate_by_quarter <- vax %>%
   filter(demographic_category == "Gender") %>%
   group_by(quarter) %>%
@@ -320,18 +302,19 @@ vax_rate_by_quarter <- vax %>%
 
 ### Joining Datasets
 
-```{r}
+```{r, message=FALSE, warning=FALSE}
 
 flu_vax <- flu %>%
   full_join(vax, by = c("county","demographic_value","demographic_category","quarter"))
 
+str(flu_vax)
 ```
 
 ### Visualizations
 
 **Table**: Rates of Severe Flu and COVID Vaccination by Demographic Group
 
-```{r, message=FALSE}
+```{r, message=FALSE, warning=FALSE, echo = TRUE}
 flu_vax_rate_by_demo <- flu_vax %>%
   group_by(demographic_category,demographic_value) %>%
   summarise(new_severe = sum(new_severe, na.rm = TRUE),
@@ -343,6 +326,8 @@ flu_vax_rate_by_demo <- flu_vax %>%
          rate_partial_vaccinated = round((total_partial_vaccinated/pop.y)*1000,2)) %>%
   select(demographic_value, rate_severe, rate_partial_vaccinated) %>%
   drop_na()
+
+str(flu_vax_rate_by_demo)
 
 kable(flu_vax_rate_by_demo,longtable = TRUE, booktabs = TRUE, col.names = c("Demographic Group", "Severe Flu", "COVID Vaccination"), caption = "Rates of Severe Flu and COVID Vaccination by Demographic Group, California") %>%
   kable_styling(full_width = FALSE) %>%
@@ -357,11 +342,11 @@ kable(flu_vax_rate_by_demo,longtable = TRUE, booktabs = TRUE, col.names = c("Dem
   add_footnote("Based on diagnosis date from 9/24/2022 - 6/10/2023", notation = "none")
 ```
 
-Interpretation: By age group, severe flu incidence increases with older age groups and vaccination is lowest in the youngest group (0-17 years). By race/ethnicity, severe flu incidence is highest within the White, non-Hispanic group and vaccination is lowest in the Multi-racial group followed by the White, non-Hispanic group. 
+Interpretation: By age group, severe flu incidence increases with older age groups and vaccination is lowest in the youngest group (0-17 years). By race/ethnicity, severe flu incidence is highest within the White, non-Hispanic group and vaccination is lowest in the Multi-racial group followed by the White, non-Hispanic group.
 
 **Scatterplot**: County Rates of Totally Partially Vaccinated for COVID-19 and Severe Flu
 
-```{r}
+```{r, message=FALSE, warning=FALSE, echo = TRUE}
 
 flu_vax_by_county <- flu_vax %>%
   filter(demographic_category == "Gender") %>%
@@ -374,6 +359,8 @@ flu_vax_by_county <- flu_vax %>%
   mutate(rate_severe = round((new_severe/pop.x)*1000,2),
          rate_partial_vaccinated = round((total_partial_vaccinated/pop.y)*1000,2)) %>%
   filter(county != "Imperial")
+
+str(flu_vax_by_county)
 
 plot_ly(
   flu_vax_by_county,
@@ -392,11 +379,14 @@ plot_ly(
 
 ```
 
-Interpretation: There is not a strong correlation at the county-level between rates of severe flu and total partially vaccinated for COVID-19. Severe flu rates ranged from 7.1 to 15.8 per 1,000, and COVID-19 vaccination ranged from 114.34 to 452.69 oer 1,000. The data point for Imperial County was excluded due to outliner value (COVID-19 vaccination rate is 1728.22 per 1,000 population). 
+Interpretation: There is not a strong correlation at the county-level between rates of severe flu and total partially vaccinated for COVID-19. Severe flu rates ranged from 7.1 to 15.8 per 1,000, and COVID-19 vaccination ranged from 114.34 to 452.69 per 1,000. The data point for Imperial County was excluded due to outliner value (COVID-19 vaccination rate is 1728.22 per 1,000 population).
 
+**Faceted Subplot:** Rates for Severe Flu and COVID Partially Vaccinated by Race/Ethnicity in California
 
+```{r, message=FALSE, warning=FALSE, echo = TRUE}
+flu_vax_race <- full_join(flu_rate_by_race, vax_rate_by_race, by = "demographic_value")
+str (flu_vax_race)
 
-```{r}
 plot1 <- plot_ly(flu_vax_race,
                  x = ~demographic_value,
                  y = ~rate_severe,
@@ -420,34 +410,13 @@ subplot(plot1, plot2, nrows = 2, shareX = TRUE) %>%
   )
 ```
 
+Interpretation:
 
-```{r}
+**Bar Chart:**
+
+```{r, message=FALSE, warning=FALSE. echo = TRUE}
 flu_vax_quarter <- inner_join (vax_rate_by_quarter,flu_rate_by_quarter, by ="quarter")
-
-
-plot_ly(
-  flu_vax_quarter,
-  x = ~quarter,
-  y = ~rate_total_partial,
-  name = "Partial COVID Vaccination",
-  type = "scatter",
-  mode = "lines+markers",
-  marker = list(color = "darkcyan")
-) %>%
-  add_trace(
-    x = ~quarter,
-    y = ~rate_infections,
-    name = "Flu Diagnosed",
-    type = "scatter",
-    mode = "lines",
-    line = list(color = "darkslateblue")
-  ) %>%
-  layout(
-    title = "Rates for Partially COVID Vaccinated and Newly Flu Diagnosed by Quarter in California, 2022-2023",
-    yaxis = list(title = "Rate per 1,000"),
-    xaxis = list(title = "Quarters"),
-    plot_bgcolor="white"
-  )
+str(flu_vax_quarter)
 
 
 plot_ly(flu_vax_quarter, x = ~quarter, y = ~rate_total_partial, type = "bar", name = "Partial COVID Vaccination", marker = list(color = "darkcyan")) %>%
@@ -459,15 +428,6 @@ plot_ly(flu_vax_quarter, x = ~quarter, y = ~rate_total_partial, type = "bar", na
     plot_bgcolor = "white"
   )
 
-library(ggplot2)
-ggplot(flu_vax_quarter, aes(x = quarter)) +
-  geom_bar(aes(y = rate_total_partial, fill = "Partial COVID Vaccination"), stat = "identity") +
-  geom_bar(aes(y = rate_infections, fill = "Flu Diagnosed"), stat = "identity") +
-  labs(
-    title = "Rates for Partially COVID Vaccinated and Newly Flu Diagnosed by Quarter in California, 2022-2023",
-    y = "Rate per 1,000",
-    x = "Quarters"
-  ) +
-  scale_fill_manual(values = c("darkcyan", "darkslateblue")) +
-  theme_minimal()
 ```
+
+Interpretation: The chart above shows that rates of newly flu diagnosis per 1,000 individuals do not have a strong correlation with rates of partially COVID vaccination per 1,000 individuals across quarters from July 2022 to April 2023. The observed increase in flu diagnosis rates during the second quarter and the largest spike in the third quarter may be attributed to the flu season.
