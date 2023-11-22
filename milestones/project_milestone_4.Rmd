@@ -329,7 +329,7 @@ flu_vax_rate_by_demo <- flu_vax %>%
 
 str(flu_vax_rate_by_demo)
 
-kable(flu_vax_rate_by_demo,longtable = TRUE, booktabs = TRUE, col.names = c("Demographic Group", "Severe Flu", "COVID Vaccination"), caption = "Rates of Severe Flu and COVID Vaccination by Demographic Group, California, Quarter 3 2022 - Quarter 2 2023") %>%
+kable(flu_vax_rate_by_demo,longtable = TRUE, booktabs = TRUE, col.names = c("Demographic Group", "Severe Flu", "COVID Vaccination"), caption = "Rates of Severe Flu and Partial COVID Vaccination by Demographic Group, California, Quarter 3 2022 - Quarter 2 2023") %>%
   kable_styling(full_width = FALSE) %>%
   kable_styling(position = "left") %>%
   kable_styling(font_size = 10) %>%
