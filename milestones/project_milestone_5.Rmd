@@ -1,11 +1,70 @@
 ---
-title: "Project Milestone 5"
+title: "Project Milestone 5: Scenario 1"
 output: html_document
 date: "2023-11-26"
 ---
 
-**Scenario 1**\
-**Jourdan Jerome, Kateryna Louchnikov, Alyssa Nguyen**
+**Group 4: Jourdan Jerome, Kateryna Louchnikov, Alyssa Nguyen**
+
+### **Problem Statement**
+
+The ongoing global COVID-19 pandemic presents an additional challenge for community well-being and underscores the critical role of vaccination in preventing the spread of infectious diseases. In navigating the complexities of pandemic response, it is crucial to thoroughly analyze vaccination rates in California given its unique demographics and geographical diversity.
+
+The primary objective of this report is to determine whether a correlation exists between COVID-19 vaccination rates and flu incidence in California. Moreover, this analysis aims to assess the need for enhanced efforts to encourage flu vaccination by evaluating the impact of flu rates and severity. The findings aim to unveil valuable insights that will shape future strategies with vaccination interventions. 
+
+### **Data Sources**
+
+Sources for this analysis are simulated data that consists of three parts representing the entire state of California and were limited to the time period available in all sources (July 2022 to July 2023).
+
+The first and second data sources include simulated aggregate flu morbidity data for the state of California at the county-level by selected demographics (age group, sex, race/ethnicity) separated into two files: 
+
+1.  data for Los Angeles (sim_flu_LACounty.csv);
+
+2.  data for all other CA counties (sim_flu_CA.csv). 
+
+The third data source is aggregate COVID-19 vaccination rates by county and age group (ca_vax_rates_quarter.csv).
+
+These simulated data sets are located in the [GitHub repository](https://github.com/PHW290/phw251_projectdata/tree/main/scenario_1).
+
+### **Data Cleaning & New Variables Calculation**
+
+Relevant data elements from each data set: date, county, count of incidence of flu cases/vaccinated, population, demographic characteristics (age group, sex, race/ethnicity).
+
+Firstly, CA flu data was cleaned by changing all variables to lower case including the values in the sex column, rewriting race/ethnicity categories according to the categorization as defined by California Department of Finance, changing data types for two columns: report_date and dt_diagnosis. Then, cleaned LA flu data was matched to CA flu data by renaming column names, handling NA, creating new columns, and selecting specific columns for future work.
+
+Secondly, CA and LA flu data were stacked and restructured to match COVID-19 vaccination data. Specifically, flu data was restructured to present one demographic variable per row. 
+
+Thirdly, COVID data was modified by recoding age categories, changing data types for dt_admin column, renaming columns to match flu data, finding overlapping period between two data sets - from 2022-09-24 to 2023-06-10, handling missing data in pop column, removing "Other Race" and "Unknown/undifferentiated" demographic values to be consistent with cleaned flu data. 
+
+County, date field, demographic fields in the flu datasets were joined with the same fields in the vaccination source. 
+
+Lastly, the two data sources for county-level flu cases were used to calculate rates which then compared to rates calculated from the COVID-19 vaccination data source. New variables were created based on existing columns - new_infections & new_severe - from cleaned flu data:
+
+-   rate_infections
+
+-   rate_severe
+
+As well as for cleaned COVID vax data, new variables were created based on existing columns - total_partial_vaccinated & cumulative_at_least_one_dose:
+
+-   rate_total_partial
+
+-   rate_cum_one_dose
+
+The research question involves comparing COVID-19 vaccination rates with flu incidence rates to assess any correlation between the two in order to provide well-informed recommendations for flu vaccination. So, several data sets for the team's interest were created for further analysis.
+
+-   flu_rate_by_demo - to see flu rate for certain demographic
+
+-   flu_vax_by_county - to analyze county rates of severe flu and total partially vaccinated 
+
+-   flu_vax_by_quarter- to track flu and partially vaccinated rates over time
+
+-   flu_vax_race - to compare rates of severe flu incidence and total partially vaccinated for COVID-19 by race/ethnicity
+
+Instead of selecting a specific demographic group from the very beginning and visualizing the results specifically for them, the team\'s objective was to perform analysis by working with all demographic characteristics, looking for the fluctuation of the results depending on the county and time period, and then providing recommendations for targeting a specific group in CA with vaccination interventions.
+
+### **Analytic Methods**
+
+Crude severe flu incidence rates and COVID-19 vaccination rates were calculated across available demographic categories (race/ethnicity, age, sex) and compiled into a single table for review. County-level rates of severe flu incidence and total partial vaccination rates were compared using a scatter plot to assess any potential relationship and to identify jurisdictions with high severity of influenza and/or low vaccination rates. To assess any correlation between varying racial/ethnic groups and across time, bar charts were created to compare flu incidence rates and COVID-19 vaccination rates by racial/ethnic groups and by yearly quarter. For all visualizations except the temporal bar chart, severe flu case rates rather than new flu case rates were calculated due to greater variation in incidence across the variables of interest (demographic categories, county) and to potentially identify groups with disproportionate incidence. Total partial COVID-19 vaccination rates were calculated to estimate the minimum protection coverage and to include a greater number of individuals.
 
 ```{r , include=FALSE, message=FALSE, warning=FALSE, echo=FALSE}
 
@@ -300,9 +359,7 @@ vax_rate_by_quarter <- vax %>%
 
 ```
 
-### Joining Datasets
-
-```{r, message=FALSE, warning=FALSE, echo=FALSE}
+```{r, include=FALSE, message=FALSE, warning=FALSE, echo=FALSE}
 
 flu_vax <- flu %>%
   full_join(vax, by = c("county","demographic_value","demographic_category","quarter"))
@@ -310,11 +367,11 @@ flu_vax <- flu %>%
 str(flu_vax)
 ```
 
-### Visualizations
+### Results
 
 **Table**: Rates of Severe Flu and Total Partially Vaccinated for COVID-19 by Demographic Group
 
-```{r, message=FALSE, warning=FALSE, echo = TRUE}
+```{r, message=FALSE, warning=FALSE, echo = FALSE}
 flu_vax_rate_by_demo <- flu_vax %>%
   group_by(demographic_category,demographic_value) %>%
   summarise(new_severe = sum(new_severe, na.rm = TRUE),
@@ -327,7 +384,7 @@ flu_vax_rate_by_demo <- flu_vax %>%
   select(demographic_value, rate_severe, rate_partial_vaccinated) %>%
   drop_na()
 
-str(flu_vax_rate_by_demo)
+# str(flu_vax_rate_by_demo)
 
 kable(flu_vax_rate_by_demo,longtable = TRUE, booktabs = TRUE, col.names = c("Demographic Group", "Severe Flu", "COVID Vaccination"), caption = "Rates of Severe Flu and Partial COVID Vaccination by Demographic Group, California, Quarter 3 2022 - Quarter 2 2023") %>%
   kable_styling(full_width = FALSE) %>%
@@ -346,7 +403,7 @@ Interpretation: By age group, severe flu incidence increases with older age grou
 
 **Scatterplot**: County Rates of Severe Flu and Total Partially Vaccinated for COVID-19
 
-```{r, message=FALSE, warning=FALSE, echo = TRUE}
+```{r, message=FALSE, warning=FALSE, echo = FALSE}
 
 flu_vax_by_county <- flu_vax %>%
   filter(demographic_category == "Gender") %>%
@@ -360,7 +417,7 @@ flu_vax_by_county <- flu_vax %>%
          rate_partial_vaccinated = round((total_partial_vaccinated/pop.y)*1000,2)) %>%
   filter(county != "Imperial")
 
-str(flu_vax_by_county)
+# str(flu_vax_by_county)
 
 plot_ly(
   flu_vax_by_county,
@@ -385,9 +442,9 @@ Interpretation: There is not a strong correlation at the county-level between ra
 
 **Faceted Subplot:** Rates of Severe Flu Incidence and Total Partially Vaccinated for COVID-19 by Race/Ethnicity, California
 
-```{r, message=FALSE, warning=FALSE, echo = TRUE}
+```{r, message=FALSE, warning=FALSE, echo = FALSE}
 flu_vax_race <- full_join(flu_rate_by_race, vax_rate_by_race, by = "demographic_value")
-str (flu_vax_race)
+# str (flu_vax_race)
 
 plot1 <- plot_ly(flu_vax_race,
                  x = ~demographic_value,
@@ -417,9 +474,9 @@ Interpretation: There is no strong correlation between rates of severe flu and t
 
 **Bar Chart:** Rates of Total Partially Vaccinated for COVID-19 and Newly Flu Diagnosed by Quarter, California, 2022-2023
 
-```{r, message=FALSE, warning=FALSE, echo = TRUE}
+```{r, message=FALSE, warning=FALSE, echo = FALSE}
 flu_vax_quarter <- inner_join (vax_rate_by_quarter,flu_rate_by_quarter, by ="quarter")
-str(flu_vax_quarter)
+# str(flu_vax_quarter)
 
 
 plot_ly(flu_vax_quarter, x = ~quarter, y = ~rate_total_partial, type = "bar", name = "Partial COVID Vaccination", marker = list(color = "darkcyan")) %>%
@@ -435,3 +492,19 @@ plot_ly(flu_vax_quarter, x = ~quarter, y = ~rate_total_partial, type = "bar", na
 ```
 
 Interpretation: The chart above shows that rates of newly flu diagnosis per 1,000 individuals do not have a strong correlation with rates of partially COVID vaccination per 1,000 individuals across quarters from July 2022 to April 2023. The observed increase in flu diagnosis rates during the second quarter and the largest spike in the third quarter may be attributed to the flu season.
+
+### **Discussion**
+
+Our findings revolve around the complex interplay between severe flu incidence, COVID-19 vaccination status, and demographic factors such as age and race/ethnicity. Our data highlights several key points:
+
+**Age-Related Trends:** There\'s a notable increase in severe flu incidence with advancing age, a trend that aligns with the general medical understanding that older populations are more susceptible to severe respiratory illnesses. Interestingly, the lowest vaccination rates are observed in the youngest age group (0-17 years). This could be due to a variety of factors, including differing vaccine policies, perceptions about the risk of COVID-19 in younger populations, or access to vaccination services.
+
+**Racial and Ethnic Disparities:** Our findings indicate the highest severe flu incidence in the white, non-Hispanic group, while the lowest vaccination rates are seen in multi-racial and white, non-Hispanic groups. This suggests a relationship between race/ethnicity, health outcomes, and healthcare access or uptake. These disparities could stem from systemic issues like healthcare accessibility, socio-economic factors, or cultural beliefs impacting health-seeking behavior and vaccination acceptance. 
+
+**County-Level Analysis and Outliers:** The lack of a strong correlation between severe flu rates and COVID-19 vaccination at the county level may imply that other social, environmental, or healthcare factors play a  more significant role in determining flu incidence. The outlier case of Imperial County highlights the importance of contextualizing data with local health dynamics and demographics. 
+
+**Comparison Across Racial/Ethnic Groups:** The absence of a strong correlation between severe flu rates and partial COVID-19 vaccination across different racial/ethnic groups further underscores the multifactorial nature of health outcomes. The variation in rates among different groups points towards the influence of other determinants of health beyond vaccination status.
+
+**Temporal Analysis:** The bar chart showing quarterly rates of flu diagnosis and partial COVID-19 vaccination over a year provides insights into the temporal dynamics of these health metrics. The increase in flu diagnoses during flu season quarters, regardless of vaccination rates, suggests that factors like seasonality and the effectiveness of the flu vaccination might be more crucial in determining flu incidence rates.
+
+In summary, our data presents a nuanced picture of the relationship between flu incidence, COVID-19 vaccination, and demographic factors. It underscores the complexity of public health dynamics where multiple factors interplay to influence health outcomes, including but not limited to vaccination status, age, race/ethnicity, and socioeconomic conditions. Further research could delve into these dynamics, exploring causative factors and strategies to mitigate disparities and improve overall health outcomes
