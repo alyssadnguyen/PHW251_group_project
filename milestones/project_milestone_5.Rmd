@@ -6,6 +6,8 @@ date: "2023-11-26"
 
 **Group 4: Jourdan Jerome, Kateryna Louchnikov, Alyssa Nguyen**
 
+Rpubs: <https://rpubs.com/alyssadnguyen/milestone_5>
+
 ### **Problem Statement**
 
 The ongoing global COVID-19 pandemic presents an additional challenge for community well-being and underscores the critical role of vaccination in preventing the spread of infectious diseases. In navigating the complexities of pandemic response, it is crucial to thoroughly analyze vaccination rates in California given its unique demographics and geographical diversity.
@@ -60,7 +62,7 @@ The research question involves comparing COVID-19 vaccination rates with flu inc
 
 -   flu_vax_race - to compare rates of severe flu incidence and total partially vaccinated for COVID-19 by race/ethnicity
 
-Instead of selecting a specific demographic group from the very beginning and visualizing the results specifically for them, the team\'s objective was to perform analysis by working with all demographic characteristics, looking for the fluctuation of the results depending on the county and time period, and then providing recommendations for targeting a specific group in CA with vaccination interventions.
+Instead of selecting a specific demographic group from the very beginning and visualizing the results specifically for them, the team's objective was to perform analysis by working with all demographic characteristics, looking for the fluctuation of the results depending on the county and time period, and then providing recommendations for targeting a specific group in CA with vaccination interventions.
 
 ### **Analytic Methods**
 
@@ -497,7 +499,7 @@ Interpretation: The chart above shows that rates of newly flu diagnosis per 1,00
 
 Our findings revolve around the complex interplay between severe flu incidence, COVID-19 vaccination status, and demographic factors such as age and race/ethnicity. Our data highlights several key points:
 
-**Age-Related Trends:** There\'s a notable increase in severe flu incidence with advancing age, a trend that aligns with the general medical understanding that older populations are more susceptible to severe respiratory illnesses. Interestingly, the lowest vaccination rates are observed in the youngest age group (0-17 years). This could be due to a variety of factors, including differing vaccine policies, perceptions about the risk of COVID-19 in younger populations, or access to vaccination services.
+**Age-Related Trends:** There's a notable increase in severe flu incidence with advancing age, a trend that aligns with the general medical understanding that older populations are more susceptible to severe respiratory illnesses. Interestingly, the lowest vaccination rates are observed in the youngest age group (0-17 years). This could be due to a variety of factors, including differing vaccine policies, perceptions about the risk of COVID-19 in younger populations, or access to vaccination services.
 
 **Racial and Ethnic Disparities:** Our findings indicate the highest severe flu incidence in the white, non-Hispanic group, while the lowest vaccination rates are seen in multi-racial and white, non-Hispanic groups. This suggests a relationship between race/ethnicity, health outcomes, and healthcare access or uptake. These disparities could stem from systemic issues like healthcare accessibility, socio-economic factors, or cultural beliefs impacting health-seeking behavior and vaccination acceptance. 
 
