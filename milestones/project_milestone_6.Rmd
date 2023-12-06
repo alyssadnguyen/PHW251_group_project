@@ -6,7 +6,7 @@ date: "2023-12-06"
 
 **Group 4: Jourdan Jerome, Kateryna Louchnikov, Alyssa Nguyen**
 
-#Rpubs: <https://rpubs.com/alyssadnguyen/milestone_5>
+Rpubs: <https://rpubs.com/alyssadnguyen/milestone_5>
 
 ### **Problem Statement**
 
@@ -438,28 +438,6 @@ plot_ly(
     yaxis = list(title = "Severe Flu Rate per 1,000"),
     xaxis = list(title = "Total Partially Vaccinated for COVID-19 Rate per 1,000")
   )
-
-
-
-
-
-# plot_ly(
-#   flu_vax_by_county,
-#   x = ~rate_partial_vaccinated,
-#   y = ~rate_severe,
-#   type = "scatter",
-#   mode = "markers",
-#   marker = list(color = "darkcyan", line = list(color = "darkslateblue", width = 2)),  
-#   text = ~paste('County: ', county, '<br>COVID Vaccination: per 1,000 population ', rate_partial_vaccinated, '<br>Severe Flu: per 1,000 population ', rate_severe),
-#   hoverinfo = "text"
-# ) %>%
-#   layout(
-#     title = "County Rates of Severe Flu and Total Partially Vaccinated for COVID-19, California, 2022-2023",
-#     titlefont = list(size = 13),
-#     yaxis = list(title = "Severe Flu Rate per 1,000"),
-#     xaxis = list(title = "Total Partially Vaccinated for COVID-19 Rate per 1,000")
-#   )
-
 
 ```
 
