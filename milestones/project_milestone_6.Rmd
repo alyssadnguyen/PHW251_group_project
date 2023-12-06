@@ -1,12 +1,12 @@
 ---
-title: "Project Milestone 5: Scenario 1"
+title: "Flu outbreak (simulated) and vaccine uptake in California"
 output: html_document
-date: "2023-11-26"
+date: "2023-12-06"
 ---
 
 **Group 4: Jourdan Jerome, Kateryna Louchnikov, Alyssa Nguyen**
 
-Rpubs: <https://rpubs.com/alyssadnguyen/milestone_5>
+#Rpubs: <https://rpubs.com/alyssadnguyen/milestone_5>
 
 ### **Problem Statement**
 
@@ -429,6 +429,7 @@ plot_ly(
   mode = "markers",
   marker = list(color = "darkcyan", line = list(color = "darkslateblue", width = 2)),  
   text = ~paste('County: ', county, '<br>COVID Vaccination: ', rate_partial_vaccinated, '<br>Severe Flu: ', rate_severe),
+  #   text = ~paste('County: ', county, '<br>COVID Vax per 1,000 pop: ', rate_partial_vaccinated, '<br>Severe Flu per 1,000 pop: ', rate_severe),
   hoverinfo = "text"
 ) %>%
   layout(
@@ -437,6 +438,28 @@ plot_ly(
     yaxis = list(title = "Severe Flu Rate per 1,000"),
     xaxis = list(title = "Total Partially Vaccinated for COVID-19 Rate per 1,000")
   )
+
+
+
+
+
+# plot_ly(
+#   flu_vax_by_county,
+#   x = ~rate_partial_vaccinated,
+#   y = ~rate_severe,
+#   type = "scatter",
+#   mode = "markers",
+#   marker = list(color = "darkcyan", line = list(color = "darkslateblue", width = 2)),  
+#   text = ~paste('County: ', county, '<br>COVID Vaccination: per 1,000 population ', rate_partial_vaccinated, '<br>Severe Flu: per 1,000 population ', rate_severe),
+#   hoverinfo = "text"
+# ) %>%
+#   layout(
+#     title = "County Rates of Severe Flu and Total Partially Vaccinated for COVID-19, California, 2022-2023",
+#     titlefont = list(size = 13),
+#     yaxis = list(title = "Severe Flu Rate per 1,000"),
+#     xaxis = list(title = "Total Partially Vaccinated for COVID-19 Rate per 1,000")
+#   )
+
 
 ```
 
@@ -453,14 +476,16 @@ plot1 <- plot_ly(flu_vax_race,
                  y = ~rate_severe,
                  name = "Severe Flu",
                  type = "bar",
-                 marker = list(color = "darkcyan"))
+                 marker = list(color = "darkcyan"),
+                 text = ~paste(rate_severe, "per 1,000 population"))
 
 plot2 <- plot_ly(flu_vax_race,
                  x = ~demographic_value,
                  y = ~rate_total_partial,
                  name = "COVID Partially Vaccinated",
                  type = "bar",
-                 marker = list(color = "darkslateblue"))
+                 marker = list(color = "darkslateblue"),
+                 text = ~paste(rate_total_partial, "per 1,000 population"))
 
 subplot(plot1, plot2, nrows = 2, shareX = TRUE) %>%
     layout(
@@ -469,6 +494,7 @@ subplot(plot1, plot2, nrows = 2, shareX = TRUE) %>%
     yaxis2 = list(title = "Severe Flu Rate per 1,000"),
     xaxis = list(title = "")
   )
+  
 ```
 
 Interpretation: There is no strong correlation between rates of severe flu and total partially vaccinated for COVID-19 between different racial/ethnic groups. Severe flu rates were lowest among the Multiracial group (5.72 per 1,000) and highest among the White, non-Hispanic group (12.59 per 1,000). Total partially vaccinated rates were also lowest among the Multiracial group (88.75 per 1,000) and highest among the Native Hawaiian/Pacific Islander group (365.53 per 1,000).
@@ -479,8 +505,10 @@ Interpretation: There is no strong correlation between rates of severe flu and t
 flu_vax_quarter <- inner_join (vax_rate_by_quarter,flu_rate_by_quarter, by ="quarter")
 # str(flu_vax_quarter)
 
-plot_ly(flu_vax_quarter, x = ~quarter, y = ~rate_total_partial, type = "bar", name = "Partial COVID Vaccination", marker = list(color = "darkcyan")) %>%
-  add_trace(x = ~quarter, y = ~rate_infections, type = "bar", name = "Flu Diagnosed", marker = list(color = "darkslateblue")) %>%
+plot_ly(flu_vax_quarter, x = ~quarter, y = ~rate_total_partial, type = "bar", name = "Partial COVID Vaccination", 
+        text = ~paste(rate_total_partial, "per 1,000 population"), marker = list(color = "darkcyan")) %>%
+  add_trace(x = ~quarter, y = ~rate_infections, type = "bar", name = "Flu Diagnosed", 
+            text = ~paste(rate_infections, "per 1,000 population"), marker = list(color = "darkslateblue")) %>%
   layout(
     title = "Rates of Partially COVID Vaccinated and Newly Flu Diagnosed by Quarter, California, 2022-2023",
     titlefont = list(size = 13),
@@ -488,6 +516,7 @@ plot_ly(flu_vax_quarter, x = ~quarter, y = ~rate_total_partial, type = "bar", na
     xaxis = list(title = "Quarter Beginning"),
     plot_bgcolor = "white"
   )
+
 ```
 
 Interpretation: The chart above shows that rates of newly flu diagnosis per 1,000 individuals do not have a strong correlation with rates of partially COVID vaccination per 1,000 individuals across quarters from July 2022 to April 2023. The observed increase in flu diagnosis rates during the second quarter and the largest spike in the third quarter may be attributed to the flu season.
@@ -506,4 +535,6 @@ Our findings revolve around the complex interplay between severe flu incidence, 
 
 **Temporal Analysis:** The bar chart showing quarterly rates of flu diagnosis and partial COVID-19 vaccination over a year provides insights into the temporal dynamics of these health metrics. The increase in flu diagnoses during flu season quarters, regardless of vaccination rates, suggests that factors like seasonality and the effectiveness of the flu vaccination might be more crucial in determining flu incidence rates.
 
-In summary, our data presents a nuanced picture of the relationship between flu incidence, COVID-19 vaccination, and demographic factors. It underscores the complexity of public health dynamics where multiple factors interplay to influence health outcomes, including but not limited to vaccination status, age, race/ethnicity, and socioeconomic conditions. Further research could delve into these dynamics, exploring causative factors and strategies to mitigate disparities and improve overall health outcomes
+In summary, our data presents a nuanced picture of the relationship between flu incidence, COVID-19 vaccination, and demographic factors. It underscores the complexity of public health dynamics where multiple factors interplay to influence health outcomes, including but not limited to vaccination status, age, race/ethnicity, and socioeconomic conditions. Further research could delve into these dynamics, exploring causative factors and strategies to mitigate disparities and improve overall health outcomes.
+
+**Overall, this analysis indicates that there is no strong correlation between COVID-19 vaccination rates and flu rates and severity from Quarter 3,2022, to Quarter 2,2023, in California. Therefore, efforts to promote flu vaccination might be not effective at this stage. Further analysis is needed to modernize strategies for vaccination interventions.**
