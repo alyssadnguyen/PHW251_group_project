@@ -428,8 +428,7 @@ plot_ly(
   type = "scatter",
   mode = "markers",
   marker = list(color = "darkcyan", line = list(color = "darkslateblue", width = 2)),  
-  text = ~paste('County: ', county, '<br>COVID Vaccination: ', rate_partial_vaccinated, '<br>Severe Flu: ', rate_severe),
-  #   text = ~paste('County: ', county, '<br>COVID Vax per 1,000 pop: ', rate_partial_vaccinated, '<br>Severe Flu per 1,000 pop: ', rate_severe),
+  text = ~paste('County: ', county, '<br>COVID Vaccination:', rate_partial_vaccinated, ' per 1,000 population', '<br>Severe Flu:', rate_severe, ' per 1,000 population'),
   hoverinfo = "text"
 ) %>%
   layout(
